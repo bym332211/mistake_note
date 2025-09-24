@@ -46,6 +46,33 @@ class CameraController:
         """选择感兴趣区域"""
 ```
 
+### ImageUploadController
+**功能**：图片上传管理
+- 支持多种格式图片上传（JPG/PNG/PDF）
+- 图片预览与确认机制
+- 文件大小和格式验证
+- 上传状态提示与错误处理
+
+**实现细节**：
+```python
+class ImageUploadController:
+    def __init__(self):
+        self.supported_formats = ['.jpg', '.jpeg', '.png', '.pdf']
+        self.max_file_size = 10 * 1024 * 1024  # 10MB
+        
+    def validate_file(self, file):
+        """验证文件格式和大小"""
+        
+    def preview_image(self, file):
+        """生成图片预览"""
+        
+    def upload_file(self, file):
+        """上传文件到后端"""
+        
+    def handle_upload_error(self, error):
+        """处理上传错误"""
+```
+
 ### MicController
 **功能**：麦克风录音管理
 - 录音开始/结束控制

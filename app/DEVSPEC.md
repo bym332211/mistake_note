@@ -54,6 +54,13 @@ async def process_camera_frame(frame: UploadFile, roi: Optional[str] = None):
 - **参数**：`text`（合成文本）, `speed`（语速）, `voice`（人声）
 - **响应**：音频文件URL
 
+### 图片上传接口
+**`POST /upload/image`**
+- **功能**：接收上传的图片文件并进行处理
+- **参数**：`image`（图片文件）, `mode`（OCR模式，可选）
+- **流程**：文件验证 → 保存到媒体目录 → OCR识别 → 引导生成
+- **响应**：处理结果和引导建议
+
 ### OCR接口
 **`POST /ocr/run`**
 - **功能**：图像OCR识别
