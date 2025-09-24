@@ -1,0 +1,10 @@
+gradio
+fastapi
+python-dotenv
+sqlalchemy
+peewee
+chroma
+sentence-transformers
+imagehash
+opencv-python
+requests
