@@ -1,0 +1,66 @@
+
+
+.pageWrapper {
+  background-color: #F9FAFB;
+  min-height: 100vh;
+}
+
+.sidebarTransition {
+  transition: width 0.3s ease-in-out;
+}
+
+.cardHover:hover {
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  transform: translateY(-1px);
+  transition: all 0.2s ease-in-out;
+}
+
+.menuItemActive {
+  background-color: #EEF2FF;
+  color: #4F46E5;
+  border-right: 3px solid #4F46E5;
+}
+
+.menuItem:hover {
+  background-color: #F3F4F6;
+  color: #4F46E5;
+}
+
+.uploadArea {
+  border: 2px dashed #D1D5DB;
+  transition: all 0.3s ease;
+}
+
+.uploadArea:hover {
+  border-color: #4F46E5;
+  background-color: #F8FAFC;
+}
+
+.uploadAreaDragover {
+  border-color: #4F46E5;
+  background-color: #EEF2FF;
+}
+
+.errorReasonTag {
+  transition: all 0.2s ease;
+}
+
+.errorReasonTagSelected {
+  background-color: #4F46E5;
+  color: white;
+  border-color: #4F46E5;
+}
+
+.loadingSpinner {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.progressBar {
+  transition: width 0.3s ease;
+}
+

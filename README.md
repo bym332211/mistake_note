@@ -69,23 +69,45 @@
 
 ## 快速启动
 
+### 方法一：使用HTML界面（推荐）
 1. 安装依赖：
    ```bash
    pip install -r requirements.txt
    ```
-2. 复制 `.env.example` 为 `.env`，并填写 API KEY。
-3. 启动后端 API：
+2. 启动后端 API：
    ```bash
    python app/app.py
    ```
-4. 启动前端 UI：
+3. 在新的终端中启动HTML界面：
+   ```bash
+   python ui/simple_server.py
+   ```
+4. 浏览器会自动打开图片上传界面，或手动访问：http://localhost:8000/simple_upload.html
+
+### 方法二：使用Gradio界面
+1. 安装依赖：
+   ```bash
+   pip install -r requirements.txt
+   ```
+2. 启动后端 API：
+   ```bash
+   python app/app.py
+   ```
+3. 在新的终端中启动Gradio界面：
    ```bash
    python ui/ui.py
    ```
-5. 或使用 Makefile 一键启动：
-   ```bash
-   make dev
-   ```
+
+### 方法三：使用Makefile一键启动
+```bash
+make dev
+```
+
+## 图片上传功能
+作为摄像头功能的替代方案，系统支持图片文件上传：
+- **支持格式**：JPG, JPEG, PNG, PDF
+- **文件大小**：最大10MB
+- **功能特性**：拖拽上传、文件验证、实时状态反馈
 
 ## 目录结构
 - app/        # 后端 API

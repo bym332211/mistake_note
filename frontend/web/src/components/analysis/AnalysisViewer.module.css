@@ -1,0 +1,238 @@
+﻿.viewer {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-5);
+  padding: var(--spacing-5);
+  border-radius: var(--radius-lg);
+  background: var(--surface-card);
+  border: 1px solid var(--border-subtle);
+  box-shadow: var(--shadow-soft);
+}
+
+.summary {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--spacing-4);
+  align-items: center;
+}
+
+.summaryTitle {
+  margin: 0;
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.summarySubtitle {
+  margin: 6px 0 0;
+  color: var(--text-muted);
+  font-size: 0.95rem;
+}
+
+.summaryBadges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-2);
+}
+
+.summaryBadge {
+  padding: 6px 12px;
+  border-radius: 999px;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.summaryBadgeCorrect {
+  background: rgba(34, 197, 94, 0.16);
+  color: #047857;
+}
+
+.summaryBadgeIncorrect {
+  background: rgba(239, 68, 68, 0.16);
+  color: #b91c1c;
+}
+
+.summaryBadgeUnknown {
+  background: rgba(59, 130, 246, 0.12);
+  color: #1d4ed8;
+}
+
+.sections {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+}
+
+.sectionCard {
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-subtle);
+  background: #fff;
+  padding: var(--spacing-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-3);
+}
+
+.sectionHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--spacing-3);
+}
+
+.sectionHeader h3 {
+  margin: 0;
+  font-size: 1.1rem;
+  color: var(--text-primary);
+}
+
+.sectionBadge {
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: var(--surface-muted);
+  color: var(--text-secondary);
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.questionList {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-3);
+}
+
+.questionItem {
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--surface-muted);
+  padding: var(--spacing-3);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-3);
+  background: var(--surface-page);
+}
+
+.questionHeader {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+}
+
+.statusDot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.statusDot_correct {
+  background: #22c55e;
+}
+
+.statusDot_incorrect {
+  background: #ef4444;
+}
+
+.statusDot_unknown {
+  background: #60a5fa;
+}
+
+.questionText {
+  flex: 1;
+  margin: 0;
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+.statusBadge {
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.statusBadge_correct {
+  background: rgba(34, 197, 94, 0.16);
+  color: #15803d;
+}
+
+.statusBadge_incorrect {
+  background: rgba(239, 68, 68, 0.16);
+  color: #b91c1c;
+}
+
+.statusBadge_unknown {
+  background: rgba(59, 130, 246, 0.12);
+  color: #1d4ed8;
+}
+
+.answerGrid {
+  display: grid;
+  gap: var(--spacing-3);
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+}
+
+.answerLabel {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.answerValue {
+  margin: 6px 0 0;
+  color: var(--text-secondary);
+  font-weight: 600;
+}
+
+.comment {
+  margin: 0;
+  padding: var(--spacing-3);
+  border-radius: var(--radius-sm);
+  background: rgba(59, 130, 246, 0.08);
+  color: #1e3a8a;
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+@media (max-width: 640px) {
+  .viewer {
+    padding: var(--spacing-4);
+  }
+
+  .summary {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .summaryBadges {
+    width: 100%;
+  }
+
+  .sectionCard {
+    padding: var(--spacing-3);
+  }
+
+  .questionItem {
+    padding: var(--spacing-2);
+  }
+}
+.questionItemInteractive {
+  cursor: pointer;
+  transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+}
+
+.questionItemInteractive:hover {
+  transform: translateY(-1px);
+  border-color: rgba(37, 99, 235, 0.45);
+  box-shadow: 0 10px 24px rgba(37, 99, 235, 0.14);
+}
+
+.questionItemInteractive:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 4px;
+  border-color: rgba(37, 99, 235, 0.65);
+}

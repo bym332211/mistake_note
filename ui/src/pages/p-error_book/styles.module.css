@@ -1,0 +1,51 @@
+
+
+.pageWrapper {
+  background-color: #F9FAFB;
+  min-height: 100vh;
+}
+
+.sidebarTransition {
+  transition: width 0.3s ease-in-out;
+}
+
+.cardHover:hover {
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  transform: translateY(-1px);
+  transition: all 0.2s ease-in-out;
+}
+
+.menuItemActive {
+  background-color: #EEF2FF;
+  color: #4F46E5;
+  border-right: 3px solid #4F46E5;
+}
+
+.menuItem:hover {
+  background-color: #F3F4F6;
+  color: #4F46E5;
+}
+
+.tableRow:hover {
+  background-color: #F9FAFB;
+}
+
+.sortIcon {
+  opacity: 0.3;
+  transition: opacity 0.2s ease;
+}
+
+.sortActive .sortIcon {
+  opacity: 1;
+}
+
+.filterDropdown {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.3s ease;
+}
+
+.filterDropdown.show {
+  max-height: 300px;
+}
+
