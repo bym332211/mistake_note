@@ -1,7 +1,6 @@
 import os
-from sqlalchemy import create_engine, Column, Integer, String, Text, Boolean, DateTime, ForeignKey, JSON
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker, relationship
+from sqlalchemy import create_engine, Column, Integer, String, Text, Boolean, DateTime, ForeignKey, JSON, text
+from sqlalchemy.orm import declarative_base, sessionmaker, relationship
 from sqlalchemy.sql import func
 from datetime import datetime
 import logging
@@ -22,7 +21,14 @@ DATABASE_CONFIG = {
 DATABASE_URL = f"postgresql://{DATABASE_CONFIG['user']}:{DATABASE_CONFIG['password']}@{DATABASE_CONFIG['host']}:{DATABASE_CONFIG['port']}/{DATABASE_CONFIG['database']}"
 
 # 创建数据库引擎
-engine = create_engine(DATABASE_URL, echo=False)
+engine = create_engine(
+    DATABASE_URL, 
+    echo=False,
+    pool_size=5,
+    max_overflow=10,
+    pool_pre_ping=True,  # 启用连接预检查
+    pool_recycle=3600    # 连接回收时间（秒）
+)
 
 # 创建基类
 Base = declarative_base()
@@ -47,6 +53,7 @@ class MistakeRecord(Base):
 
     # 关系
     analyses = relationship("MistakeAnalysis", back_populates="mistake_record", cascade="all, delete-orphan")
+    practices = relationship("MistakePractice", back_populates="mistake_record", cascade="all, delete-orphan")
 
 class MistakeAnalysis(Base):
     """错题分析表"""
@@ -54,6 +61,7 @@ class MistakeAnalysis(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     mistake_record_id = Column(Integer, ForeignKey("mistake_records.id", ondelete="CASCADE"))
+    subject = Column(String(100))  # 学科
     section = Column(String(200))
     question = Column(Text)
     answer = Column(Text)
@@ -68,6 +76,19 @@ class MistakeAnalysis(Base):
 
     # 关系
     mistake_record = relationship("MistakeRecord", back_populates="analyses")
+
+class MistakePractice(Base):
+    """类练习（相似练习）"""
+    __tablename__ = "mistake_practices"
+
+    id = Column(Integer, primary_key=True, index=True)
+    mistake_record_id = Column(Integer, ForeignKey("mistake_records.id", ondelete="CASCADE"))
+    question = Column(Text)
+    correct_answer = Column(Text)
+    comment = Column(Text)
+    created_at = Column(DateTime(timezone=True), default=func.now())
+
+    mistake_record = relationship("MistakeRecord", back_populates="practices")
 
 class User(Base):
     """用户表（用于未来扩展）"""
@@ -107,7 +128,7 @@ def init_db():
         logger.error(f"数据库表创建失败: {e}")
         raise
 
-def save_mistake_record(db, file_data, analysis_data=None):
+def save_mistake_record(db, file_data, analysis_data=None, practices_data=None):
     """保存错题记录和分析结果"""
     try:
         logger.info(f"📝 开始保存错题记录到数据库...")
@@ -134,6 +155,7 @@ def save_mistake_record(db, file_data, analysis_data=None):
             for i, analysis in enumerate(analysis_data):
                 mistake_analysis = MistakeAnalysis(
                     mistake_record_id=mistake_record.id,
+                    subject=analysis.get("subject"),  # 保存学科字段
                     section=analysis.get("section"),
                     question=analysis.get("question"),
                     answer=analysis.get("answer"),
@@ -147,10 +169,29 @@ def save_mistake_record(db, file_data, analysis_data=None):
                 )
                 db.add(mistake_analysis)
                 analysis_count += 1
-                logger.info(f"📋 分析记录 {i+1}: section={analysis.get('section')}, question={analysis.get('question')[:50]}...")
+                logger.info(f"📋 分析记录 {i+1}: subject={analysis.get('subject')}, section={analysis.get('section')}, question={analysis.get('question')[:50]}...")
         
+        # 保存类练习（如果有）
+        practices_count = 0
+        if practices_data:
+            for j, p in enumerate(practices_data):
+                mp = MistakePractice(
+                    mistake_record_id=mistake_record.id,
+                    question=p.get("question"),
+                    correct_answer=p.get("correct_answer"),
+                    comment=p.get("comment"),
+                )
+                db.add(mp)
+                practices_count += 1
+
         db.commit()
         logger.info(f"🎉 数据库保存完成！错题记录ID: {mistake_record.id}, 分析记录数: {analysis_count}")
+        # 记录类练习数量
+        if 'practices_count' in locals():
+            try:
+                logger.info(f"类练习数: {practices_count}")
+            except Exception:
+                pass
         return mistake_record.id
         
     except Exception as e:
@@ -186,7 +227,8 @@ def test_connection():
     """测试数据库连接"""
     try:
         with engine.connect() as conn:
-            result = conn.execute("SELECT version();")
+            # 使用 text() 包装 SQL 语句
+            result = conn.execute(text("SELECT version();"))
             version = result.fetchone()
             logger.info(f"数据库连接成功: {version[0]}")
             return True

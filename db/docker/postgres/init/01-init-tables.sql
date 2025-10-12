@@ -15,6 +15,7 @@ CREATE TABLE IF NOT EXISTS mistake_records (
 CREATE TABLE IF NOT EXISTS mistake_analysis (
     id SERIAL PRIMARY KEY,
     mistake_record_id INTEGER REFERENCES mistake_records(id) ON DELETE CASCADE,
+    subject VARCHAR(100), -- 学科
     section VARCHAR(200),
     question TEXT,
     answer TEXT,
@@ -50,6 +51,7 @@ CREATE TABLE IF NOT EXISTS review_plans (
 CREATE INDEX IF NOT EXISTS idx_mistake_records_file_id ON mistake_records(file_id);
 CREATE INDEX IF NOT EXISTS idx_mistake_records_upload_time ON mistake_records(upload_time);
 CREATE INDEX IF NOT EXISTS idx_mistake_analysis_mistake_record_id ON mistake_analysis(mistake_record_id);
+CREATE INDEX IF NOT EXISTS idx_mistake_analysis_subject ON mistake_analysis(subject);
 CREATE INDEX IF NOT EXISTS idx_mistake_analysis_error_type ON mistake_analysis(error_type);
 CREATE INDEX IF NOT EXISTS idx_mistake_analysis_knowledge_point ON mistake_analysis(knowledge_point);
 CREATE INDEX IF NOT EXISTS idx_review_plans_user_id ON review_plans(user_id);
