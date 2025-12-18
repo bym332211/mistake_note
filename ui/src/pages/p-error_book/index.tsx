@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import styles from './styles.module.css';
 import { getMistakesList, MistakeRecord } from '../../lib/apiClient';
+import { MobileNav } from '../../components/MobileNav';
 
 const ErrorBookPage: React.FC = () => {
   const navigate = useNavigate();
@@ -126,12 +127,12 @@ const ErrorBookPage: React.FC = () => {
     <div className={styles.pageWrapper}>
       {/* 顶部导航栏 */}
       <header className="fixed top-0 left-0 right-0 bg-card-bg border-b border-border-light h-16 z-50">
-        <div className="flex items-center justify-between h-full px-6">
+        <div className="flex items-center justify-between h-full px-3 sm:px-4 md:px-6">
           <div className="flex items-center space-x-3">
             <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center">
               <i className="fas fa-brain text-white text-lg"></i>
             </div>
-            <h1 className="text-xl font-bold text-text-primary">错题智析</h1>
+            <h1 className="text-lg md:text-xl font-bold text-text-primary">错题智析</h1>
           </div>
           
           <div className="flex items-center space-x-4">
@@ -144,15 +145,15 @@ const ErrorBookPage: React.FC = () => {
                 alt="用户头像" 
                 className="w-8 h-8 rounded-full" 
               />
-              <span className="text-text-primary font-medium">小明同学</span>
-              <i className="fas fa-chevron-down text-text-secondary text-sm"></i>
+              <span className="hidden sm:inline text-text-primary font-medium">小明同学</span>
+              <i className="hidden sm:inline fas fa-chevron-down text-text-secondary text-sm"></i>
             </div>
           </div>
         </div>
       </header>
 
       {/* 左侧菜单 */}
-      <aside className={`fixed left-0 top-16 bottom-0 w-64 bg-card-bg border-r border-border-light z-40 ${styles.sidebarTransition}`}>
+      <aside className={`hidden md:block fixed left-0 top-16 bottom-0 w-64 bg-card-bg border-r border-border-light z-40 ${styles.sidebarTransition}`}>
         <nav className="p-4">
           <ul className="space-y-2">
             <li>
@@ -205,10 +206,10 @@ const ErrorBookPage: React.FC = () => {
       </aside>
 
       {/* 主内容区 */}
-      <main className="ml-64 mt-16 p-6 min-h-screen">
+      <main className="mt-16 p-4 md:p-6 min-h-screen pb-24 md:pb-6 md:ml-64">
         {/* 页面头部 */}
         <div className="mb-8">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div>
               <h2 className="text-2xl font-bold text-text-primary mb-2">错题本</h2>
               <nav className="text-sm text-text-secondary">
@@ -241,12 +242,12 @@ const ErrorBookPage: React.FC = () => {
             </div>
 
             {/* 筛选条件 */}
-            <div className="flex flex-wrap items-center space-x-4">
+            <div className="flex flex-col sm:flex-row sm:flex-wrap items-stretch sm:items-center gap-3 sm:gap-4">
               {/* 学科筛选 */}
               <select 
                 value={selectedSubject}
                 onChange={handleSubjectChange}
-                className="px-4 py-3 border border-border-light rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+                className="w-full sm:w-auto px-4 py-3 border border-border-light rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
               >
                 <option value="">全部学科</option>
                 <option value="数学">数学</option>
@@ -259,7 +260,7 @@ const ErrorBookPage: React.FC = () => {
               <select 
                 value={selectedReason}
                 onChange={handleReasonChange}
-                className="px-4 py-3 border border-border-light rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+                className="w-full sm:w-auto px-4 py-3 border border-border-light rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
               >
                 <option value="">全部原因</option>
                 <option value="概念不清">概念不清</option>
@@ -274,7 +275,7 @@ const ErrorBookPage: React.FC = () => {
         {/* 错题列表 */}
         <div className="bg-card-bg rounded-2xl border border-border-light overflow-hidden">
           {/* 表格头部 */}
-          <div className="bg-bg-light px-6 py-4 border-b border-border-light">
+          <div className="bg-bg-light px-4 md:px-6 py-4 border-b border-border-light">
             <div className="flex items-center">
               <input 
                 type="checkbox" 
@@ -285,7 +286,7 @@ const ErrorBookPage: React.FC = () => {
                 onChange={(e) => handleSelectAll(e.target.checked)}
                 className="w-4 h-4 text-primary border-border-light rounded focus:ring-primary/20 mr-4"
               />
-              <div className="flex-1 grid grid-cols-12 gap-4 text-sm font-medium text-text-secondary">
+              <div className="hidden md:grid flex-1 grid-cols-12 gap-4 text-sm font-medium text-text-secondary">
                 <div className="col-span-1">图片</div>
                 <div className="col-span-3">题目内容</div>
                 <div className="col-span-1">学科</div>
@@ -316,47 +317,47 @@ const ErrorBookPage: React.FC = () => {
               </div>
             ) : (
               mistakes.map(mistake => (
-                <div key={mistake.mistake_record_id} className={`${styles.tableRow} px-6 py-4 flex items-center`}>
+                <div key={mistake.mistake_record_id} className={`${styles.tableRow} px-4 md:px-6 py-4 flex items-start md:items-center`}>
                   <input 
                     type="checkbox" 
                     checked={selectedErrors.has(mistake.mistake_record_id)}
                     onChange={(e) => handleSelectError(mistake.mistake_record_id, e.target.checked)}
                     className="w-4 h-4 text-primary border-border-light rounded focus:ring-primary/20 mr-4"
                   />
-                  <div className="flex-1 grid grid-cols-12 gap-4 items-center">
-                    <div className="col-span-1">
+                  <div className="flex-1 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 items-start md:items-center">
+                    <div className="hidden md:block md:col-span-1">
                       <img 
                         src={mistake.file_info.file_url} 
                         alt="题目图片" 
                         className="w-12 h-12 rounded-lg object-cover"
                       />
                     </div>
-                    <div className="col-span-3">
+                    <div className="md:col-span-3">
                       <p className="text-text-primary font-medium text-sm line-clamp-2">
                         {mistake.analysis.question || '无题目内容'}
                       </p>
                     </div>
-                    <div className="col-span-1">
+                    <div className="flex flex-wrap gap-2 md:col-span-1">
                       <span className="px-2 py-1 bg-primary/10 text-primary text-xs rounded-full">
                         {mistake.analysis.subject || '未知'}
                       </span>
                     </div>
-                    <div className="col-span-1">
+                    <div className="hidden md:block md:col-span-1">
                       <span className="text-text-secondary text-sm">
                         {mistake.analysis.knowledge_point || '未知'}
                       </span>
                     </div>
-                    <div className="col-span-1">
+                    <div className="md:col-span-1">
                       <span className={`px-2 py-1 ${getReasonColor(mistake.analysis.error_type)} text-xs rounded-full`}>
                         {mistake.analysis.error_type || '未知'}
                       </span>
                     </div>
-                    <div className="col-span-1">
+                    <div className="md:col-span-1">
                       <span className="text-text-secondary text-sm">
                         {formatDate(mistake.file_info.upload_time)}
                       </span>
                     </div>
-                    <div className="col-span-2">
+                    <div className="md:col-span-2">
                       <div className="flex items-center space-x-2">
                         <button 
                           onClick={() => handleViewDetail(mistake.mistake_record_id)}
@@ -375,8 +376,8 @@ const ErrorBookPage: React.FC = () => {
         </div>
 
         {/* 分页区域 */}
-        <div className="flex items-center justify-between mt-6">
-          <div className="flex items-center space-x-4">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mt-6">
+          <div className="flex flex-wrap items-center gap-3 sm:gap-4">
             <span className="text-sm text-text-secondary">每页显示</span>
             <select 
               value={pageSize}
@@ -395,7 +396,7 @@ const ErrorBookPage: React.FC = () => {
             </span>
           </div>
           
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center justify-between sm:justify-end gap-2">
             <button 
               onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
               disabled={currentPage === 1}
@@ -416,6 +417,8 @@ const ErrorBookPage: React.FC = () => {
           </div>
         </div>
       </main>
+
+      <MobileNav />
     </div>
   );
 };

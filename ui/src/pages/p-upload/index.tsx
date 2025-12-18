@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import styles from './styles.module.css';
 import { API_BASE_URL } from '../../lib/apiClient';
+import { MobileNav } from '../../components/MobileNav';
 
 interface UploadedFile {
   file: File;
@@ -37,6 +38,7 @@ interface ApiResponse {
 const PUpload: React.FC = () => {
   const navigate = useNavigate();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const cameraInputRef = useRef<HTMLInputElement>(null);
   
   // 状态管理
   const [selectedFiles, setSelectedFiles] = useState<UploadedFile[]>([]);
@@ -57,6 +59,7 @@ const PUpload: React.FC = () => {
   const [knowledgePoint, setKnowledgePoint] = useState('');
   const [customReason, setCustomReason] = useState('');
   const [solutionIdea, setSolutionIdea] = useState('AI正在分析解题思路...');
+  void solutionIdea;
   const [apiResponse, setApiResponse] = useState<ApiResponse | null>(null);
   const [selectedQuestionIndex, setSelectedQuestionIndex] = useState<number | null>(null);
 
@@ -89,6 +92,15 @@ const PUpload: React.FC = () => {
     if (files) {
       handleFiles(Array.from(files));
     }
+    event.target.value = '';
+  };
+
+  const handleCameraInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = event.target.files;
+    if (files) {
+      handleFiles(Array.from(files));
+    }
+    event.target.value = '';
   };
 
   // 拖拽事件处理
@@ -282,10 +294,7 @@ const PUpload: React.FC = () => {
     // 注释：此功能需要调用设备相机API，在原型阶段仅做UI展示
     
     // 模拟拍照成功
-    setTimeout(() => {
-      const mockFile = new File(['mock image data'], 'photo.jpg', { type: 'image/jpeg' });
-      handleFiles([mockFile]);
-    }, 1000);
+    cameraInputRef.current?.click();
   };
 
   // 取消操作
@@ -321,13 +330,13 @@ const PUpload: React.FC = () => {
     <div className={styles.pageWrapper}>
       {/* 顶部导航栏 */}
       <header className="fixed top-0 left-0 right-0 bg-card-bg border-b border-border-light h-16 z-50">
-        <div className="flex items-center justify-between h-full px-6">
+        <div className="flex items-center justify-between h-full px-3 sm:px-4 md:px-6">
           {/* Logo和产品名称 */}
           <div className="flex items-center space-x-3">
             <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center">
               <i className="fas fa-brain text-white text-lg"></i>
             </div>
-            <h1 className="text-xl font-bold text-text-primary">错题智析</h1>
+            <h1 className="text-lg md:text-xl font-bold text-text-primary">错题智析</h1>
           </div>
           
           {/* 用户操作区 */}
@@ -341,15 +350,15 @@ const PUpload: React.FC = () => {
                 alt="用户头像" 
                 className="w-8 h-8 rounded-full" 
               />
-              <span className="text-text-primary font-medium">小明同学</span>
-              <i className="fas fa-chevron-down text-text-secondary text-sm"></i>
+              <span className="hidden sm:inline text-text-primary font-medium">小明同学</span>
+              <i className="hidden sm:inline fas fa-chevron-down text-text-secondary text-sm"></i>
             </div>
           </div>
         </div>
       </header>
 
       {/* 左侧菜单 */}
-      <aside className={`fixed left-0 top-16 bottom-0 w-64 bg-card-bg border-r border-border-light z-40 ${styles.sidebarTransition}`}>
+      <aside className={`hidden md:block fixed left-0 top-16 bottom-0 w-64 bg-card-bg border-r border-border-light z-40 ${styles.sidebarTransition}`}>
         <nav className="p-4">
           <ul className="space-y-2">
             <li>
@@ -402,7 +411,7 @@ const PUpload: React.FC = () => {
       </aside>
 
       {/* 主内容区 */}
-      <main className="ml-64 mt-16 p-6 min-h-screen">
+      <main className="mt-16 p-4 md:p-6 min-h-screen pb-24 md:pb-6 md:ml-64">
         {/* 页面头部 */}
         <div className="mb-8">
           <div className="flex items-center justify-between">
@@ -417,12 +426,12 @@ const PUpload: React.FC = () => {
 
         {/* 上传区域 */}
         <section className="mb-8">
-          <div className="bg-card-bg rounded-2xl border border-border-light p-8">
+          <div className="bg-card-bg rounded-2xl border border-border-light p-4 sm:p-6 md:p-8">
             <h3 className="text-lg font-semibold text-text-primary mb-6">上传错题图片</h3>
             
             {/* 拖拽上传区域 */}
             <div 
-              className={`${styles.uploadArea} ${isDragOver ? styles.uploadAreaDragover : ''} rounded-xl p-8 text-center mb-6 cursor-pointer`}
+              className={`${styles.uploadArea} ${isDragOver ? styles.uploadAreaDragover : ''} rounded-xl p-5 sm:p-6 md:p-8 text-center mb-6 cursor-pointer`}
               onDragOver={handleDragOver}
               onDragLeave={handleDragLeave}
               onDrop={handleDrop}
@@ -454,10 +463,18 @@ const PUpload: React.FC = () => {
             <div className="flex justify-center">
               <button 
                 onClick={handleCameraUpload}
-                className="px-6 py-2 bg-secondary text-white rounded-lg hover:bg-secondary/90 transition duration-300"
+                className="w-full sm:w-auto px-6 py-2 bg-secondary text-white rounded-lg hover:bg-secondary/90 transition duration-300"
               >
                 <i className="fas fa-camera mr-2"></i>拍照上传
               </button>
+              <input
+                ref={cameraInputRef}
+                type="file"
+                accept="image/*"
+                capture="environment"
+                className="hidden"
+                onChange={handleCameraInputChange}
+              />
             </div>
             
             {/* 上传进度 */}
@@ -694,6 +711,8 @@ const PUpload: React.FC = () => {
           </section>
         )}
       </main>
+
+      <MobileNav />
     </div>
   );
 };

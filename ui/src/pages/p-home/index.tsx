@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import styles from './styles.module.css';
+import { MobileNav } from '../../components/MobileNav';
 
 const HomePage: React.FC = () => {
   const navigate = useNavigate();
@@ -66,13 +67,13 @@ const HomePage: React.FC = () => {
     <div className={styles.pageWrapper}>
       {/* 顶部导航栏 */}
       <header className="fixed top-0 left-0 right-0 bg-card-bg border-b border-border-light h-16 z-50">
-        <div className="flex items-center justify-between h-full px-6">
+        <div className="flex items-center justify-between h-full px-3 sm:px-4 md:px-6">
           {/* Logo和产品名称 */}
           <div className="flex items-center space-x-3">
             <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center">
               <i className="fas fa-brain text-white text-lg"></i>
             </div>
-            <h1 className="text-xl font-bold text-text-primary">错题智析</h1>
+            <h1 className="text-lg md:text-xl font-bold text-text-primary">错题智析</h1>
           </div>
           
           {/* 用户操作区 */}
@@ -92,15 +93,15 @@ const HomePage: React.FC = () => {
                 alt="用户头像" 
                 className="w-8 h-8 rounded-full" 
               />
-              <span className="text-text-primary font-medium">小明同学</span>
-              <i className="fas fa-chevron-down text-text-secondary text-sm"></i>
+              <span className="hidden sm:inline text-text-primary font-medium">小明同学</span>
+              <i className="hidden sm:inline fas fa-chevron-down text-text-secondary text-sm"></i>
             </div>
           </div>
         </div>
       </header>
 
       {/* 左侧菜单 */}
-      <aside className={`fixed left-0 top-16 bottom-0 w-64 bg-card-bg border-r border-border-light z-40 ${styles.sidebarTransition}`}>
+      <aside className={`hidden md:block fixed left-0 top-16 bottom-0 w-64 bg-card-bg border-r border-border-light z-40 ${styles.sidebarTransition}`}>
         <nav className="p-4">
           <ul className="space-y-2">
             <li>
@@ -178,17 +179,17 @@ const HomePage: React.FC = () => {
       </aside>
 
       {/* 主内容区 */}
-      <main className="ml-64 mt-16 p-6 min-h-screen">
+      <main className="mt-16 p-4 md:p-6 min-h-screen pb-24 md:pb-6 md:ml-64">
         {/* 页面头部 */}
         <div className="mb-8">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div>
               <h2 className="text-2xl font-bold text-text-primary mb-2">欢迎回来，小明同学！</h2>
               <nav className="text-sm text-text-secondary">
                 <span>首页</span>
               </nav>
             </div>
-            <div className="text-right">
+            <div className="md:text-right">
               <p className="text-text-secondary">今天是</p>
               <p className="text-lg font-semibold text-text-primary">{currentDate}</p>
             </div>
@@ -461,9 +462,10 @@ const HomePage: React.FC = () => {
           </div>
         </section>
       </main>
+
+      <MobileNav />
     </div>
   );
 };
 
 export default HomePage;
-

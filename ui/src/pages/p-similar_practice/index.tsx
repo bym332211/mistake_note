@@ -4,13 +4,13 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import styles from './styles.module.css';
 import { SimilarQuestion } from './types';
+import { MobileNav } from '../../components/MobileNav';
 
 const SimilarPracticePage: React.FC = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   
   // URL参数
-  const similarQuestionId = searchParams.get('similarQuestionId') || 'default';
   const originalQuestionId = searchParams.get('questionId') || 'default';
 
   // 状态管理
@@ -247,13 +247,13 @@ const SimilarPracticePage: React.FC = () => {
     <div className={styles.pageWrapper}>
       {/* 顶部导航栏 */}
       <header className="fixed top-0 left-0 right-0 bg-card-bg border-b border-border-light h-16 z-50">
-        <div className="flex items-center justify-between h-full px-6">
+        <div className="flex items-center justify-between h-full px-3 sm:px-4 md:px-6">
           {/* Logo和产品名称 */}
           <div className="flex items-center space-x-3">
             <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center">
               <i className="fas fa-brain text-white text-lg"></i>
             </div>
-            <h1 className="text-xl font-bold text-text-primary">错题智析</h1>
+            <h1 className="text-lg md:text-xl font-bold text-text-primary">错题智析</h1>
           </div>
           
           {/* 用户操作区 */}
@@ -267,15 +267,15 @@ const SimilarPracticePage: React.FC = () => {
                 alt="用户头像" 
                 className="w-8 h-8 rounded-full" 
               />
-              <span className="text-text-primary font-medium">小明同学</span>
-              <i className="fas fa-chevron-down text-text-secondary text-sm"></i>
+              <span className="hidden sm:inline text-text-primary font-medium">小明同学</span>
+              <i className="hidden sm:inline fas fa-chevron-down text-text-secondary text-sm"></i>
             </div>
           </div>
         </div>
       </header>
 
       {/* 左侧菜单 */}
-      <aside className={`fixed left-0 top-16 bottom-0 w-64 bg-card-bg border-r border-border-light z-40 ${styles.sidebarTransition}`}>
+      <aside className={`hidden md:block fixed left-0 top-16 bottom-0 w-64 bg-card-bg border-r border-border-light z-40 ${styles.sidebarTransition}`}>
         <nav className="p-4">
           <ul className="space-y-2">
             <li>
@@ -313,10 +313,10 @@ const SimilarPracticePage: React.FC = () => {
       </aside>
 
       {/* 主内容区 */}
-      <main className="ml-64 mt-16 p-6 min-h-screen">
+      <main className="mt-16 p-4 md:p-6 min-h-screen pb-24 md:pb-6 md:ml-64">
         {/* 页面头部 */}
         <div className="mb-8">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <div>
               <h2 className="text-2xl font-bold text-text-primary mb-2">相似题练习</h2>
               <nav className="text-sm text-text-secondary">
@@ -329,7 +329,7 @@ const SimilarPracticePage: React.FC = () => {
             </div>
             <button 
               onClick={handleBackClick}
-              className="px-4 py-2 bg-gray-100 text-text-primary rounded-lg hover:bg-gray-200"
+              className="w-full sm:w-auto px-4 py-2 bg-gray-100 text-text-primary rounded-lg hover:bg-gray-200"
             >
               <i className="fas fa-arrow-left mr-2"></i>返回
             </button>
@@ -339,7 +339,7 @@ const SimilarPracticePage: React.FC = () => {
         {/* 练习进度 */}
         <section className="mb-6">
           <div className="bg-card-bg rounded-2xl border border-border-light p-6">
-            <div className="flex items-center justify-between mb-4">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-4">
               <h3 className="text-lg font-semibold text-text-primary">练习进度</h3>
               <span className="text-text-secondary">第 {currentQuestionIndex + 1} 题 / 共 {similarQuestions.length} 题</span>
             </div>
@@ -575,9 +575,10 @@ const SimilarPracticePage: React.FC = () => {
           </div>
         </div>
       )}
+
+      <MobileNav />
     </div>
   );
 };
 
 export default SimilarPracticePage;
-
