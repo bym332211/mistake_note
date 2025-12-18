@@ -114,7 +114,7 @@ const ErrorBookPage: React.FC = () => {
   };
 
   const handleViewDetail = (mistakeId: number) => {
-    navigate(`/error-detail?mistakeId=${mistakeId}`);
+    navigate(`/error-detail?errorId=${mistakeId}`);
   };
 
   const formatDate = (dateString: string) => {

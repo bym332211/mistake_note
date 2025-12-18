@@ -54,3 +54,7 @@
   background-color: #F9FAFB;
 }
 
+/* Hide images on the error detail page (no mistake image needed) */
+.pageWrapper img {
+  display: none;
+}

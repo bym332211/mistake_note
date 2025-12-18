@@ -437,7 +437,7 @@ python sqlite_config.py
 ### 测试上传功能
 ```bash
 # 使用curl测试上传
-curl -X POST -F "image=@test_image.png" http://127.0.0.1:8001/upload/image
+curl -X POST -F "image=@test_image.png" http://127.0.0.1:8000/upload/image
 ```
 
 ### 检查数据库记录

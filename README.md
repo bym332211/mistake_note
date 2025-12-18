@@ -127,3 +127,16 @@ make dev
 ---
 
 详细功能与架构见 Architect.md。
+
+## How To Run
+前端
+```
+cd ui
+npm run dev
+```
+
+
+后端
+```
+uvicorn app.app:app --reload --host 127.0.0.1 --port 8000
+```

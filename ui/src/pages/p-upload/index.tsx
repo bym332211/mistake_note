@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import styles from './styles.module.css';
+import { API_BASE_URL } from '../../lib/apiClient';
 
 interface UploadedFile {
   file: File;
@@ -26,23 +27,11 @@ interface ApiResponse {
     is_correct: boolean;
     correct_answer: string;
     comment: string;
-    isSuccess: boolean;
-    output: Array<{
-      id: string;
-      knowledge_points: string[];
-      questions: Array<{
-        answer: string;
-        comment: string;
-        correct_answer: string;
-        is_correct: boolean;
-        is_question: boolean;
-        question: string;
-      }>;
-      section: string;
-      subject: string;
-    }>;
+    knowledge_point?: string;
+    error_type?: string;
   }>;
   analyze_time: string;
+  mistake_record_id?: number;
 }
 
 const PUpload: React.FC = () => {
@@ -186,7 +175,7 @@ const PUpload: React.FC = () => {
       const formData = new FormData();
       formData.append('image', file);
 
-      const response = await fetch('http://localhost:8001/analyze/image', {
+      const response = await fetch(`${API_BASE_URL}/analyze/image`, {
         method: 'POST',
         body: formData,
       });
@@ -199,7 +188,7 @@ const PUpload: React.FC = () => {
       setApiResponse(result);
       
       // 处理API响应数据
-      if (result.analysis && result.analysis.length > 0 && result.analysis[0].output && result.analysis[0].output.length > 0) {
+      if (result.analysis && result.analysis.length > 0) {
         populateRecognitionResult(result);
       } else {
         // 如果没有数据，显示默认信息
@@ -222,42 +211,32 @@ const PUpload: React.FC = () => {
 
   // 填充识别结果
   const populateRecognitionResult = (result: ApiResponse | null) => {
-    if (result && result.analysis && result.analysis.length > 0 && result.analysis[0].output && result.analysis[0].output.length > 0) {
-      // 使用API返回的数据
-      const firstOutputItem = result.analysis[0].output[0];
+    if (result && result.analysis && result.analysis.length > 0) {
+      // 使用API返回的数据 - 新的扁平结构
+      const firstAnalysisItem = result.analysis[0];
       
-      // 构建完整的题目内容（大题题干 + 小题）
+      // 构建完整的题目内容
       let fullQuestionContent = '';
-      if (firstOutputItem.section) {
-        fullQuestionContent += `<p class="font-medium text-text-primary mb-3">${firstOutputItem.section}</p>`;
+      if (firstAnalysisItem.section) {
+        fullQuestionContent += `<p class="font-medium text-text-primary mb-3">${firstAnalysisItem.section}</p>`;
       }
       
-      if (firstOutputItem.questions && firstOutputItem.questions.length > 0) {
-        firstOutputItem.questions.forEach((question, index) => {
-          fullQuestionContent += `<p class="text-text-primary mb-2">${index + 1}. ${question.question}</p>`;
-        });
+      if (firstAnalysisItem.question) {
+        fullQuestionContent += `<p class="text-text-primary mb-2">${firstAnalysisItem.question}</p>`;
       }
       
       setQuestionContent(fullQuestionContent || '未识别到题目内容');
       
-      // 构建正确答案（所有小题的正确答案）
-      let fullCorrectAnswer = '';
-      if (firstOutputItem.questions && firstOutputItem.questions.length > 0) {
-        firstOutputItem.questions.forEach((question, index) => {
-          fullCorrectAnswer += `<p class="text-text-primary mb-2">${index + 1}. ${question.correct_answer}</p>`;
-        });
-      }
+      // 设置正确答案
+      setCorrectAnswer(firstAnalysisItem.correct_answer || '');
       
-      setCorrectAnswer(fullCorrectAnswer || '');
+      // 设置知识点
+      setKnowledgePoint(firstAnalysisItem.knowledge_point || '');
       
-      // 设置知识点（以第一个知识点为主）
-      setKnowledgePoint(firstOutputItem.knowledge_points?.[0] || '');
-      
-      // 构建解题思路（使用第一个小题的comment）
-      const firstQuestion = firstOutputItem.questions?.[0];
-      const solutionText = firstQuestion?.comment ? 
+      // 构建解题思路
+      const solutionText = firstAnalysisItem.comment ? 
         `<p class="text-text-primary text-sm mb-2"><strong>解题思路：</strong></p>
-         <p class="text-text-secondary text-sm">${firstQuestion.comment}</p>` :
+         <p class="text-text-secondary text-sm">${firstAnalysisItem.comment}</p>` :
         'AI正在分析解题思路...';
       setSolutionIdea(solutionText);
       
@@ -332,9 +311,9 @@ const PUpload: React.FC = () => {
     setIsSaving(true);
     
     setTimeout(() => {
-      // 生成模拟的错题ID
-      const errorId = 'error_' + Date.now();
-      navigate(`/error-detail?errorId=${errorId}`);
+      // 使用错题记录ID进行导航，如果没有则使用模拟ID
+      const mistakeId = apiResponse?.mistake_record_id || 'error_' + Date.now();
+      navigate(`/error-detail?errorId=${mistakeId}`);
     }, 1500);
   };
 
@@ -544,9 +523,9 @@ const PUpload: React.FC = () => {
               
               {/* 题目列表 */}
               <div className="space-y-4">
-                {apiResponse?.analysis?.[0]?.output?.map((outputItem, index) => (
+                {apiResponse?.analysis?.map((analysisItem, index) => (
                   <div 
-                    key={outputItem.id || index}
+                    key={analysisItem.id || index}
                     className={`border rounded-lg p-4 cursor-pointer transition duration-300 ${
                       selectedQuestionIndex === index 
                         ? 'border-primary bg-primary/5' 
@@ -559,56 +538,38 @@ const PUpload: React.FC = () => {
                         {/* 题目内容 */}
                         <div className="mb-3">
                           <h4 className="font-medium text-text-primary mb-2">题目内容</h4>
-                          {outputItem.section && (
-                            <p className="text-text-primary mb-2 font-medium">{outputItem.section}</p>
+                          {analysisItem.section && (
+                            <p className="text-text-primary mb-2 font-medium">{analysisItem.section}</p>
                           )}
-                          {outputItem.questions && outputItem.questions.length > 0 && (
-                            <div className="space-y-1">
-                              {outputItem.questions.map((question, qIndex) => (
-                                <p key={qIndex} className="text-text-primary text-sm">
-                                  {qIndex + 1}. {question.question}
-                                </p>
-                              ))}
-                            </div>
+                          {analysisItem.question && (
+                            <p className="text-text-primary text-sm">{analysisItem.question}</p>
                           )}
                         </div>
                         
                         {/* 学科和知识点 */}
                         <div className="flex flex-wrap items-center gap-4 mb-3">
-                          {outputItem.subject && (
-                            <div>
-                              <span className="text-sm font-medium text-text-primary mr-2">学科：</span>
-                              <span className="px-2 py-1 bg-primary/10 text-primary text-xs rounded-full">
-                                {outputItem.subject}
-                              </span>
-                            </div>
-                          )}
-                          
-                          {outputItem.knowledge_points && outputItem.knowledge_points.length > 0 && (
+                          {analysisItem.knowledge_point && (
                             <div>
                               <span className="text-sm font-medium text-text-primary mr-2">知识点：</span>
                               <div className="inline-flex flex-wrap gap-1">
-                                {outputItem.knowledge_points.map((point, pIndex) => (
-                                  <span 
-                                    key={pIndex}
-                                    className="px-2 py-1 bg-secondary/10 text-secondary text-xs rounded-full border border-secondary/20"
-                                  >
-                                    {point}
-                                  </span>
-                                ))}
+                                <span 
+                                  className="px-2 py-1 bg-secondary/10 text-secondary text-xs rounded-full border border-secondary/20"
+                                >
+                                  {analysisItem.knowledge_point}
+                                </span>
                               </div>
                             </div>
                           )}
                         </div>
                         
                         {/* 解题思路预览 */}
-                        {outputItem.questions?.[0]?.comment && (
+                        {analysisItem.comment && (
                           <div className="text-text-secondary text-sm">
                             <span className="font-medium">解题思路：</span>
                             <span className="ml-1">
-                              {outputItem.questions[0].comment.length > 100 
-                                ? outputItem.questions[0].comment.substring(0, 100) + '...' 
-                                : outputItem.questions[0].comment
+                              {analysisItem.comment.length > 100 
+                                ? analysisItem.comment.substring(0, 100) + '...' 
+                                : analysisItem.comment
                               }
                             </span>
                           </div>
@@ -620,7 +581,9 @@ const PUpload: React.FC = () => {
                         <button 
                           onClick={(e) => {
                             e.stopPropagation();
-                            navigate(`/error-detail?questionId=${outputItem.id || index}&data=${encodeURIComponent(JSON.stringify(outputItem))}`);
+                            // 使用错题记录ID进行导航
+                            const mistakeId = apiResponse?.mistake_record_id || 'error_' + Date.now();
+                            navigate(`/error-detail?errorId=${mistakeId}`);
                           }}
                           className="px-3 py-1 bg-primary text-white text-sm rounded hover:bg-primary/90"
                         >
@@ -633,7 +596,7 @@ const PUpload: React.FC = () => {
               </div>
               
               {/* 选中题目的详细信息 */}
-              {selectedQuestionIndex !== null && apiResponse?.analysis?.[0]?.output?.[selectedQuestionIndex] && (
+              {selectedQuestionIndex !== null && apiResponse?.analysis?.[selectedQuestionIndex] && (
                 <div className="mt-6 p-4 border border-primary/20 bg-primary/5 rounded-lg">
                   <h4 className="font-semibold text-text-primary mb-4">题目详情</h4>
                   
@@ -641,11 +604,9 @@ const PUpload: React.FC = () => {
                   <div className="mb-4">
                     <label className="block text-sm font-medium text-text-primary mb-2">正确答案</label>
                     <div className="p-3 bg-bg-light border border-border-light rounded">
-                      {apiResponse.analysis[0].output[selectedQuestionIndex].questions?.map((question, qIndex) => (
-                        <p key={qIndex} className="text-text-primary text-sm mb-1">
-                          {qIndex + 1}. {question.correct_answer}
-                        </p>
-                      ))}
+                      <p className="text-text-primary text-sm">
+                        {apiResponse.analysis[selectedQuestionIndex].correct_answer}
+                      </p>
                     </div>
                   </div>
                   
@@ -653,9 +614,9 @@ const PUpload: React.FC = () => {
                   <div>
                     <label className="block text-sm font-medium text-text-primary mb-2">解题思路</label>
                     <div className="p-3 bg-bg-light border border-border-light rounded">
-                      {apiResponse.analysis[0].output[selectedQuestionIndex].questions?.[0]?.comment ? (
+                      {apiResponse.analysis[selectedQuestionIndex].comment ? (
                         <p className="text-text-secondary text-sm">
-                          {apiResponse.analysis[0].output[selectedQuestionIndex].questions[0].comment}
+                          {apiResponse.analysis[selectedQuestionIndex].comment}
                         </p>
                       ) : (
                         <p className="text-text-secondary text-sm">暂无解题思路</p>

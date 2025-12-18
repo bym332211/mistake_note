@@ -8,7 +8,7 @@ import json
 import base64
 
 # 测试配置
-BASE_URL = "http://127.0.0.1:8001"
+BASE_URL = "http://127.0.0.1:8000"
 
 def test_logging_with_real_api():
     """测试当配置真实Coze API时的日志输出"""

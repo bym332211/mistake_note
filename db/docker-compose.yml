@@ -1,7 +1,7 @@
 services:
   postgres:
-    image: postgres:13
-    container_name: mistake_note_db
+    image: ${POSTGRES_IMAGE:-postgres:13}
+    container_name: mistake_note_db2
     environment:
       POSTGRES_DB: mistake_note
       POSTGRES_USER: mistake_user
@@ -19,5 +19,47 @@ services:
       timeout: 10s
       retries: 3
 
+  backend:
+    build:
+      context: ..
+      dockerfile: app/Dockerfile
+      args:
+        PYTHON_IMAGE: ${PYTHON_IMAGE:-python:3.11-slim}
+      pull: false
+    container_name: mistake_note_backend
+    environment:
+      DB_HOST: postgres
+      DB_PORT: "5432"
+      DB_NAME: mistake_note
+      DB_USER: mistake_user
+      DB_PASSWORD: mistake_password
+      COZE_API_KEY: ${COZE_API_KEY:-}
+      COZE_WORKFLOW_ID: ${COZE_WORKFLOW_ID:-}
+    ports:
+      - "8000:8000"
+    volumes:
+      - media_data:/workspace/media
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ..
+      dockerfile: ui/Dockerfile
+      args:
+        NODE_IMAGE: ${NODE_IMAGE:-node:20-alpine}
+      pull: false
+    container_name: mistake_note_frontend
+    environment:
+      VITE_API_BASE_URL: ${VITE_API_BASE_URL:-http://localhost:8000}
+    ports:
+      - "5173:5173"
+    depends_on:
+      - backend
+    restart: unless-stopped
+
 volumes:
   postgres_data:
+  media_data:

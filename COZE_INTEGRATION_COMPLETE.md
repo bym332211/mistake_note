@@ -97,7 +97,7 @@ Content-Type: multipart/form-data
 # Coze API Configuration
 COZE_API_KEY=您的Coze_API密钥
 COZE_WORKFLOW_ID=您的工作流ID
-VITE_API_BASE_URL=http://localhost:8001
+VITE_API_BASE_URL=http://localhost:8000
 ```
 
 ### 启动服务

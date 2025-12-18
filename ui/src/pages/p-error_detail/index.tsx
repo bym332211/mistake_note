@@ -2,13 +2,51 @@
 
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+import { API_BASE_URL, getMistakeDetail } from '../../lib/apiClient';
 import styles from './styles.module.css';
+
+interface MistakeDetailData {
+  file_info: {
+    id: number;
+    file_id: string;
+    filename: string;
+    file_url: string;
+    file_size: number;
+    file_type: string;
+    upload_time: string;
+    created_at: string;
+  };
+  analysis: Array<{
+    id: string | number;
+    section: string;
+    question: string;
+    answer: string;
+    is_question: boolean;
+    is_correct: boolean;
+    correct_answer: string;
+    comment: string;
+    error_type: string | null;
+    knowledge_point: string | null;
+    created_at?: string;
+  }>;
+  practices: Array<{
+    id?: number;
+    question: string;
+    correct_answer: string;
+    comment: string;
+    created_at?: string;
+  }>;
+}
 
 const ErrorDetailPage: React.FC = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const [isEditMode, setIsEditMode] = useState(false);
   const [isFavorited, setIsFavorited] = useState(false);
+  const [mistakeData, setMistakeData] = useState<MistakeDetailData | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [selectedErrorType, setSelectedErrorType] = useState<string>('');
 
   // 设置页面标题
   useEffect(() => {
@@ -17,14 +55,36 @@ const ErrorDetailPage: React.FC = () => {
     return () => { document.title = originalTitle; };
   }, []);
 
-  // 获取错题ID参数
+  // 获取错题详情数据
   useEffect(() => {
     const errorId = searchParams.get('errorId');
     if (errorId) {
-      console.log('加载错题ID:', errorId);
-      // 在实际应用中，这里会调用API获取具体的错题数据
+      const mistakeId = parseInt(errorId, 10);
+      if (!isNaN(mistakeId)) {
+        fetchMistakeDetail(mistakeId);
+      } else {
+        setError('无效的错题ID');
+      }
+    } else {
+      setError('未提供错题ID');
     }
   }, [searchParams]);
+
+  // 获取错题详情
+  const fetchMistakeDetail = async (mistakeId: number) => {
+    setLoading(true);
+    setError(null);
+    try {
+      const data = await getMistakeDetail(mistakeId);
+      setMistakeData(data);
+      console.log('获取错题详情成功:', data);
+    } catch (err) {
+      console.error('获取错题详情失败:', err);
+      setError(err instanceof Error ? err.message : '获取错题详情失败');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // 编辑模式切换
   const handleEditToggle = () => {
@@ -71,6 +131,49 @@ const ErrorDetailPage: React.FC = () => {
     const errorId = searchParams.get('errorId') || 'error-1';
     navigate(`/similar-practice?sourceErrorId=${errorId}`);
   };
+
+  // 获取主要分析数据（第一条分析记录）
+  const mainAnalysis = mistakeData?.analysis?.[0];
+  useEffect(() => {
+    setSelectedErrorType(mainAnalysis?.error_type || '');
+  }, [mistakeData]);
+
+  // 渲染加载状态
+  if (loading) {
+    return (
+      <div className={styles.pageWrapper}>
+        <div className="flex items-center justify-center min-h-screen">
+          <div className="text-center">
+            <div className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+            <p className="text-text-primary">正在加载错题详情...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // 渲染错误状态
+  if (error) {
+    return (
+      <div className={styles.pageWrapper}>
+        <div className="flex items-center justify-center min-h-screen">
+          <div className="text-center">
+            <div className="w-16 h-16 bg-danger/10 rounded-full flex items-center justify-center mx-auto mb-4">
+              <i className="fas fa-exclamation-triangle text-danger text-2xl"></i>
+            </div>
+            <h3 className="text-lg font-semibold text-text-primary mb-2">加载失败</h3>
+            <p className="text-text-secondary mb-4">{error}</p>
+            <button 
+              onClick={() => navigate('/error-book')}
+              className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90"
+            >
+              返回错题本
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className={styles.pageWrapper}>
@@ -204,20 +307,28 @@ const ErrorDetailPage: React.FC = () => {
             {/* 题目图片 */}
             <div className="mb-6">
               <h3 className="text-lg font-semibold text-text-primary mb-3">题目图片</h3>
-              <img 
-                src="https://s.coze.cn/image/SOOON7MeITM/" 
-                alt="数学分数加减法题目图片" 
-                className="w-full max-w-md rounded-lg border border-border-light" 
-              />
+              {mistakeData?.file_info?.file_url ? (
+                <img 
+                  src={`${API_BASE_URL}${mistakeData.file_info.file_url}`} 
+                  alt="错题图片" 
+                  className="w-full max-w-md rounded-lg border border-border-light" 
+                />
+              ) : (
+                <div className="w-full max-w-md h-48 bg-bg-light rounded-lg border border-border-light flex items-center justify-center">
+                  <p className="text-text-secondary">暂无图片</p>
+                </div>
+              )}
             </div>
 
             {/* 题目内容 */}
             <div className="mb-6">
               <h3 className="text-lg font-semibold text-text-primary mb-3">题目内容</h3>
               <div className={`${styles.editable} bg-bg-light rounded-lg p-4 text-text-primary`}>
-                <p className="font-medium mb-2">计算题：</p>
-                <p className="text-lg">1/2 + 1/3 = ?</p>
-                <p className="text-sm text-text-secondary mt-2">请计算上述分数加法的结果，并写出详细的计算步骤。</p>
+                <p className="font-medium mb-2">{mainAnalysis?.section || '题目'}</p>
+                <p className="text-lg">{mainAnalysis?.question || '暂无题目内容'}</p>
+                {mainAnalysis?.comment && (
+                  <p className="text-sm text-text-secondary mt-2">{mainAnalysis.comment}</p>
+                )}
               </div>
             </div>
 
@@ -227,10 +338,10 @@ const ErrorDetailPage: React.FC = () => {
               <div>
                 <h3 className="text-lg font-semibold text-text-primary mb-3">你的答案</h3>
                 <div className={`${styles.editable} bg-danger/5 border border-danger/20 rounded-lg p-4`}>
-                  <p className="text-text-primary">1/2 + 1/3 = 2/5</p>
+                  <p className="text-text-primary">{mainAnalysis?.answer || '未提供答案'}</p>
                   <p className="text-sm text-danger mt-2">
                     <i className="fas fa-times-circle mr-1"></i>
-                    答案错误
+                    {mainAnalysis?.is_correct ? '答案正确' : '答案错误'}
                   </p>
                 </div>
               </div>
@@ -239,13 +350,13 @@ const ErrorDetailPage: React.FC = () => {
               <div>
                 <h3 className="text-lg font-semibold text-text-primary mb-3">正确答案</h3>
                 <div className="bg-success/5 border border-success/20 rounded-lg p-4">
-                  <p className="text-text-primary font-medium">1/2 + 1/3 = 5/6</p>
-                  <div className="mt-3 space-y-2">
-                    <p className="text-sm text-text-secondary">解题步骤：</p>
-                    <p className="text-sm text-text-primary">1. 找到公分母：2和3的最小公倍数是6</p>
-                    <p className="text-sm text-text-primary">2. 通分：1/2 = 3/6，1/3 = 2/6</p>
-                    <p className="text-sm text-text-primary">3. 相加：3/6 + 2/6 = 5/6</p>
-                  </div>
+                  <p className="text-text-primary font-medium">{mainAnalysis?.correct_answer || '暂无正确答案'}</p>
+                  {mainAnalysis?.comment && (
+                    <div className="mt-3 space-y-2">
+                      <p className="text-sm text-text-secondary">解题思路：</p>
+                      <p className="text-sm text-text-primary">{mainAnalysis.comment}</p>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
@@ -256,14 +367,20 @@ const ErrorDetailPage: React.FC = () => {
               <div>
                 <h3 className="text-lg font-semibold text-text-primary mb-3">知识点</h3>
                 <div className={`${styles.editable} bg-info/5 border border-info/20 rounded-lg p-4`}>
-                  <a 
-                    href="#" 
-                    onClick={handleKnowledgePointClick}
-                    className="text-info hover:text-info/80 font-medium"
-                  >
-                    <i className="fas fa-tag mr-2"></i>分数加减法
-                  </a>
-                  <p className="text-sm text-text-secondary mt-2">数学 · 五年级上册</p>
+                  {mainAnalysis?.knowledge_point ? (
+                    <a 
+                      href="#" 
+                      onClick={handleKnowledgePointClick}
+                      className="text-info hover:text-info/80 font-medium"
+                    >
+                      <i className="fas fa-tag mr-2"></i>{mainAnalysis.knowledge_point}
+                    </a>
+                  ) : (
+                    <span className="text-info font-medium">
+                      <i className="fas fa-tag mr-2"></i>暂无知识点信息
+                    </span>
+                  )}
+                  <p className="text-sm text-text-secondary mt-2">数学 · 错题分析</p>
                 </div>
               </div>
 
@@ -271,8 +388,28 @@ const ErrorDetailPage: React.FC = () => {
               <div>
                 <h3 className="text-lg font-semibold text-text-primary mb-3">错误原因</h3>
                 <div className={`${styles.editable} bg-warning/5 border border-warning/20 rounded-lg p-4`}>
-                  <span className="px-3 py-1 bg-danger text-white text-sm rounded-full">计算错误</span>
-                  <p className="text-sm text-text-secondary mt-2">未正确通分，直接将分子分母分别相加</p>
+                  <div className="flex items-center space-x-3">
+                    <select
+                      value={selectedErrorType}
+                      onChange={(e) => setSelectedErrorType(e.target.value)}
+                      className="px-3 py-2 border border-border-light rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+                    >
+                      <option value="">未分类</option>
+                      <option value="粗心">粗心</option>
+                      <option value="审题不清">审题不清</option>
+                      <option value="概念不清">概念不清</option>
+                      <option value="计算错误">计算错误</option>
+                      <option value="步骤遗漏">步骤遗漏</option>
+                      <option value="知识点不会">知识点不会</option>
+                      <option value="其他">其他</option>
+                    </select>
+                    {selectedErrorType && (
+                      <span className="px-3 py-1 bg-danger text-white text-xs rounded-full">{selectedErrorType}</span>
+                    )}
+                  </div>
+                  {mainAnalysis?.comment && (
+                    <p className="text-sm text-text-secondary mt-2">{mainAnalysis.comment}</p>
+                  )}
                 </div>
               </div>
             </div>
@@ -281,54 +418,33 @@ const ErrorDetailPage: React.FC = () => {
             <div className="mb-6">
               <h3 className="text-lg font-semibold text-text-primary mb-3">解题思路</h3>
               <div className={`${styles.editable} bg-secondary/5 border border-secondary/20 rounded-lg p-4`}>
-                <div className="space-y-3">
-                  <div className="flex items-start space-x-3">
-                    <div className="w-6 h-6 bg-secondary rounded-full flex items-center justify-center text-white text-sm font-bold">1</div>
-                    <div>
-                      <p className="font-medium text-text-primary">理解分数加法的基本规则</p>
-                      <p className="text-sm text-text-secondary">分数相加时，必须先通分，使分母相同后才能将分子相加</p>
+                {mainAnalysis?.comment ? (
+                  <div className="space-y-3">
+                    <div className="flex items-start space-x-3">
+                      <div className="w-6 h-6 bg-secondary rounded-full flex items-center justify-center text-white text-sm font-bold">1</div>
+                      <div>
+                        <p className="font-medium text-text-primary">理解题目要求</p>
+                        <p className="text-sm text-text-secondary">仔细阅读题目，明确需要解决的问题</p>
+                      </div>
+                    </div>
+                    <div className="flex items-start space-x-3">
+                      <div className="w-6 h-6 bg-secondary rounded-full flex items-center justify-center text-white text-sm font-bold">2</div>
+                      <div>
+                        <p className="font-medium text-text-primary">分析解题思路</p>
+                        <p className="text-sm text-text-secondary">{mainAnalysis.comment}</p>
+                      </div>
+                    </div>
+                    <div className="flex items-start space-x-3">
+                      <div className="w-6 h-6 bg-secondary rounded-full flex items-center justify-center text-white text-sm font-bold">3</div>
+                      <div>
+                        <p className="font-medium text-text-primary">验证答案</p>
+                        <p className="text-sm text-text-secondary">检查计算过程和最终结果是否正确</p>
+                      </div>
                     </div>
                   </div>
-                  <div className="flex items-start space-x-3">
-                    <div className="w-6 h-6 bg-secondary rounded-full flex items-center justify-center text-white text-sm font-bold">2</div>
-                    <div>
-                      <p className="font-medium text-text-primary">找到最小公分母</p>
-                      <p className="text-sm text-text-secondary">对于2和3，最小公分母是6，这是两个数的最小公倍数</p>
-                    </div>
-                  </div>
-                  <div className="flex items-start space-x-3">
-                    <div className="w-6 h-6 bg-secondary rounded-full flex items-center justify-center text-white text-sm font-bold">3</div>
-                    <div>
-                      <p className="font-medium text-text-primary">正确通分并相加</p>
-                      <p className="text-sm text-text-secondary">将两个分数都转换为分母为6的分数，然后相加分子</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* 复习记录 */}
-            <div>
-              <h3 className="text-lg font-semibold text-text-primary mb-3">复习记录</h3>
-              <div className="space-y-3">
-                <div className={`${styles.reviewRecord} pl-4 py-3 bg-bg-light rounded-lg`}>
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="font-medium text-text-primary">2024年1月14日 15:30</p>
-                      <p className="text-sm text-text-secondary">复习了该错题，重做了3道相似题</p>
-                    </div>
-                    <span className="px-3 py-1 bg-success/10 text-success text-sm rounded-full">已掌握</span>
-                  </div>
-                </div>
-                <div className={`${styles.reviewRecord} pl-4 py-3 bg-bg-light rounded-lg`}>
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="font-medium text-text-primary">2024年1月10日 19:45</p>
-                      <p className="text-sm text-text-secondary">首次复习，完成相似题练习</p>
-                    </div>
-                    <span className="px-3 py-1 bg-warning/10 text-warning text-sm rounded-full">一般</span>
-                  </div>
-                </div>
+                ) : (
+                  <p className="text-text-secondary">暂无详细的解题思路</p>
+                )}
               </div>
             </div>
           </div>
@@ -339,74 +455,48 @@ const ErrorDetailPage: React.FC = () => {
           <div className="bg-card-bg rounded-2xl border border-border-light p-6">
             <div className="flex items-center justify-between mb-6">
               <h3 className="text-lg font-semibold text-text-primary">相似题推荐</h3>
-              <button 
-                onClick={handlePracticeAll}
-                className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90"
-              >
-                <i className="fas fa-play mr-2"></i>开始练习
-              </button>
+              {mistakeData?.practices && mistakeData.practices.length > 0 && (
+                <button 
+                  onClick={handlePracticeAll}
+                  className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90"
+                >
+                  <i className="fas fa-play mr-2"></i>开始练习
+                </button>
+              )}
             </div>
             
             <div className="space-y-4">
-              <div 
-                className={`${styles.similarQuestion} p-4 border border-border-light rounded-lg cursor-pointer transition-all duration-200`}
-                onClick={() => handleSimilarQuestionClick('similar-1')}
-              >
-                <div className="flex items-start space-x-4">
-                  <div className="w-8 h-8 bg-primary/10 rounded-lg flex items-center justify-center">
-                    <span className="text-primary font-bold text-sm">1</span>
-                  </div>
-                  <div className="flex-1">
-                    <h4 className="font-medium text-text-primary mb-2">分数加法练习</h4>
-                    <p className="text-text-secondary text-sm mb-2">计算：2/3 + 1/4 = ?</p>
-                    <div className="flex items-center space-x-4">
-                      <span className="px-2 py-1 bg-success/10 text-success text-xs rounded-full">基础</span>
-                      <span className="text-text-secondary text-xs">预计用时：3分钟</span>
+              {mistakeData?.practices && mistakeData.practices.length > 0 ? (
+                mistakeData.practices.map((practice, index) => (
+                  <div 
+                    key={practice.id || index}
+                    className={`${styles.similarQuestion} p-4 border border-border-light rounded-lg cursor-pointer transition-all duration-200`}
+                    onClick={() => handleSimilarQuestionClick(`practice-${practice.id || index}`)}
+                  >
+                    <div className="flex items-start space-x-4">
+                      <div className="w-8 h-8 bg-primary/10 rounded-lg flex items-center justify-center">
+                        <span className="text-primary font-bold text-sm">{index + 1}</span>
+                      </div>
+                      <div className="flex-1">
+                        <h4 className="font-medium text-text-primary mb-2">相似练习</h4>
+                        <p className="text-text-secondary text-sm mb-2">{practice.question}</p>
+                        <div className="flex items-center space-x-4">
+                          <span className="px-2 py-1 bg-success/10 text-success text-xs rounded-full">基础</span>
+                          <span className="text-text-secondary text-xs">预计用时：3分钟</span>
+                        </div>
+                      </div>
+                      <i className="fas fa-chevron-right text-text-secondary"></i>
                     </div>
                   </div>
-                  <i className="fas fa-chevron-right text-text-secondary"></i>
+                ))
+              ) : (
+                <div className="text-center py-8">
+                  <div className="w-16 h-16 bg-bg-light rounded-full flex items-center justify-center mx-auto mb-4">
+                    <i className="fas fa-book text-text-secondary text-xl"></i>
+                  </div>
+                  <p className="text-text-secondary">暂无相似题推荐</p>
                 </div>
-              </div>
-              
-              <div 
-                className={`${styles.similarQuestion} p-4 border border-border-light rounded-lg cursor-pointer transition-all duration-200`}
-                onClick={() => handleSimilarQuestionClick('similar-2')}
-              >
-                <div className="flex items-start space-x-4">
-                  <div className="w-8 h-8 bg-primary/10 rounded-lg flex items-center justify-center">
-                    <span className="text-primary font-bold text-sm">2</span>
-                  </div>
-                  <div className="flex-1">
-                    <h4 className="font-medium text-text-primary mb-2">分数减法练习</h4>
-                    <p className="text-text-secondary text-sm mb-2">计算：5/6 - 1/3 = ?</p>
-                    <div className="flex items-center space-x-4">
-                      <span className="px-2 py-1 bg-warning/10 text-warning text-xs rounded-full">中等</span>
-                      <span className="text-text-secondary text-xs">预计用时：4分钟</span>
-                    </div>
-                  </div>
-                  <i className="fas fa-chevron-right text-text-secondary"></i>
-                </div>
-              </div>
-              
-              <div 
-                className={`${styles.similarQuestion} p-4 border border-border-light rounded-lg cursor-pointer transition-all duration-200`}
-                onClick={() => handleSimilarQuestionClick('similar-3')}
-              >
-                <div className="flex items-start space-x-4">
-                  <div className="w-8 h-8 bg-primary/10 rounded-lg flex items-center justify-center">
-                    <span className="text-primary font-bold text-sm">3</span>
-                  </div>
-                  <div className="flex-1">
-                    <h4 className="font-medium text-text-primary mb-2">分数混合运算</h4>
-                    <p className="text-text-secondary text-sm mb-2">计算：1/2 + 2/5 - 1/10 = ?</p>
-                    <div className="flex items-center space-x-4">
-                      <span className="px-2 py-1 bg-danger/10 text-danger text-xs rounded-full">困难</span>
-                      <span className="text-text-secondary text-xs">预计用时：6分钟</span>
-                    </div>
-                  </div>
-                  <i className="fas fa-chevron-right text-text-secondary"></i>
-                </div>
-              </div>
+              )}
             </div>
           </div>
         </section>
@@ -416,4 +506,3 @@ const ErrorDetailPage: React.FC = () => {
 };
 
 export default ErrorDetailPage;
-

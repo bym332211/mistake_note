@@ -1,0 +1,12 @@
+# Base images (use a reachable mirror if Docker Hub is blocked)
+PYTHON_IMAGE=docker.m.daocloud.io/library/python:3.11-slim
+NODE_IMAGE=docker.m.daocloud.io/library/node:20-alpine
+POSTGRES_IMAGE=docker.m.daocloud.io/library/postgres:13
+
+# Frontend -> Backend
+VITE_API_BASE_URL=http://localhost:8000
+
+# Backend runtime env
+COZE_API_KEY=
+COZE_WORKFLOW_ID=
+

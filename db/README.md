@@ -56,6 +56,43 @@ python db/sqlite_config.py
 docker-compose -f db/docker-compose.yml up -d
 ```
 
+## Docker Hub 拉取失败（国内网络/公司网络）
+
+如果你在构建时看到类似 `failed to fetch anonymous token` / `connection was forcibly closed`，通常是 Docker Hub 访问受限导致的。
+
+本项目的 `app/Dockerfile` 和 `ui/Dockerfile` 已支持通过 build args 替换基础镜像，你可以在启动前设置环境变量指向镜像加速源：
+
+PowerShell 示例：
+```powershell
+$env:PYTHON_IMAGE="docker.m.daocloud.io/library/python:3.11-slim"
+$env:NODE_IMAGE="docker.m.daocloud.io/library/node:20-alpine"
+$env:POSTGRES_IMAGE="docker.m.daocloud.io/library/postgres:13"
+docker compose -f db/docker-compose.yml up -d --build
+```
+
+也可以把上述变量写到 `db/.env` 里（可参考 `db/.env.example`），再运行（推荐显式指定 env 文件，避免在不同目录执行时没读到变量）：
+```bash
+docker compose --env-file db/.env -f db/docker-compose.yml up -d --build
+```
+
+### 我没有公司镜像仓库怎么办？
+
+你需要满足“能拉到基础镜像”这一前置条件，否则任何 Docker 构建都会卡在 `load metadata`。
+
+可选方案：
+
+1) 配置 Docker Desktop 的 `registry-mirrors`（最常见）
+- Docker Desktop → Settings → Docker Engine → 在 JSON 里添加 `registry-mirrors`，Apply & Restart。
+- 镜像加速地址取决于你所在网络环境（有些需要登录/白名单），建议使用你能访问的镜像源或让 IT 提供。
+
+2) 通过代理/VPN 让 Docker 能访问 Docker Hub
+- Docker Desktop → Settings → Resources → Proxies（或系统代理）配置 HTTP/HTTPS 代理后重试。
+
+3) 先把基础镜像“弄到本机”，再离线构建
+- 如果你能用热点/VPN 临时联网：先 `docker pull python:3.11-slim`、`docker pull node:20-alpine`、`docker pull postgres:13`。
+- 或者让同事导出镜像给你：`docker save python:3.11-slim -o python.tar`，你这边 `docker load -i python.tar`。
+- 本项目 `db/docker-compose.yml` 已设置 `build.pull: false`，当基础镜像本地已存在时可减少构建阶段的拉取行为。
+
 ### 在应用中使用
 ```python
 # 使用PostgreSQL

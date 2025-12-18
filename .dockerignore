@@ -1,0 +1,14 @@
+.git
+.vscode
+**/__pycache__/
+**/*.pyc
+**/*.pyo
+**/*.pyd
+.pytest_cache/
+.coverage
+
+ui/node_modules/
+ui/dist/
+
+**/*.log
+

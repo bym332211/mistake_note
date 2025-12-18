@@ -8,7 +8,7 @@ import json
 import base64
 
 # æµ‹è¯•é…ç½®
-BASE_URL = "http://127.0.0.1:8001"
+BASE_URL = "http://127.0.0.1:8000"
 
 def test_upload_and_analyze():
     """测试完整的图片上传和分析流程"""

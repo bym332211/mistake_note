@@ -30,6 +30,11 @@
   background-color: #F9FAFB;
 }
 
+/* Hide mistake thumbnail images in the error book list */
+.tableRow img {
+  display: none;
+}
+
 .sortIcon {
   opacity: 0.3;
   transition: opacity 0.2s ease;
@@ -48,4 +53,3 @@
 .filterDropdown.show {
   max-height: 300px;
 }
-
