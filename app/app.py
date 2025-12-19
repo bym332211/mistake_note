@@ -36,7 +36,14 @@ logging.basicConfig(
 
     handlers=[
 
-        logging.FileHandler('coze_api.log', encoding='utf-8'),
+        logging.FileHandler(
+            # 将日志写入 LOG_DIR 环境变量指定的目录，默认 logs/
+            os.path.join(
+                (lambda p: (os.makedirs(p, exist_ok=True) or p)(os.getenv('LOG_DIR', 'logs'))),
+                'coze_api.log'
+            ),
+            encoding='utf-8'
+        ),
 
         logging.StreamHandler()
 

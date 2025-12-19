@@ -39,8 +39,8 @@ services:
       - "8000:8000"
     volumes:
       - media_data:/workspace/media
-      # 将后端日志挂载到宿主机，便于查看和持久化
-      - ../logs/coze_api.log:/workspace/coze_api.log
+      # 将后端日志目录挂载到宿主机，便于查看和持久化
+      - ../logs:/workspace/logs
     depends_on:
       postgres:
         condition: service_healthy
