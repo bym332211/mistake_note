@@ -28,27 +28,17 @@ except ImportError as e:
 
 # 配置日志
 
+LOG_DIR = os.getenv("LOG_DIR", "logs")
+os.makedirs(LOG_DIR, exist_ok=True)
+LOG_FILE = os.path.join(LOG_DIR, "coze_api.log")
+
 logging.basicConfig(
-
     level=logging.INFO,
-
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-
     handlers=[
-
-        logging.FileHandler(
-            # 将日志写入 LOG_DIR 环境变量指定的目录，默认 logs/
-            os.path.join(
-                (lambda p: (os.makedirs(p, exist_ok=True) or p)(os.getenv('LOG_DIR', 'logs'))),
-                'coze_api.log'
-            ),
-            encoding='utf-8'
-        ),
-
-        logging.StreamHandler()
-
-    ]
-
+        logging.FileHandler(LOG_FILE, encoding='utf-8'),
+        logging.StreamHandler(),
+    ],
 )
 
 logger = logging.getLogger('coze_api')
