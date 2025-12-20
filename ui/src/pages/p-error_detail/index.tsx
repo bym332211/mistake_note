@@ -48,6 +48,16 @@ const ErrorDetailPage: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [selectedErrorType, setSelectedErrorType] = useState<string>('');
+  const errorTypeOptions = [
+    '未分类',
+    '粗心',
+    '审题不清',
+    '概念不清',
+    '计算错误',
+    '步骤遗漏',
+    '知识点不会',
+    '其他',
+  ];
 
   // 设置页面标题
   useEffect(() => {
@@ -427,13 +437,18 @@ const ErrorDetailPage: React.FC = () => {
                       className="px-3 py-2 border border-border-light rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
                     >
                       <option value="">未分类</option>
-                      <option value="粗心">粗心</option>
-                      <option value="审题不清">审题不清</option>
-                      <option value="概念不清">概念不清</option>
-                      <option value="计算错误">计算错误</option>
-                      <option value="步骤遗漏">步骤遗漏</option>
-                      <option value="知识点不会">知识点不会</option>
-                      <option value="其他">其他</option>
+                      {errorTypeOptions
+                        .filter((opt) => opt !== '未分类')
+                        .map((opt) => (
+                          <option key={opt} value={opt}>
+                            {opt}
+                          </option>
+                        ))}
+                      {/* 已存在但不在预设列表的历史值也要展示 */}
+                      {selectedErrorType &&
+                        !errorTypeOptions.includes(selectedErrorType) && (
+                          <option value={selectedErrorType}>{selectedErrorType}</option>
+                        )}
                     </select>
                     {selectedErrorType && (
                       <span className="px-3 py-1 bg-danger text-white text-xs rounded-full">{selectedErrorType}</span>
