@@ -14,6 +14,7 @@ const SimilarPracticePage: React.FC = () => {
   // URL参数
   const originalQuestionId = searchParams.get('questionId') || 'default';
   const sourceErrorId = searchParams.get('sourceErrorId');
+  const fallbackMistakeId = searchParams.get('errorId') || searchParams.get('questionId');
 
   // 状态管理
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
@@ -25,6 +26,7 @@ const SimilarPracticePage: React.FC = () => {
   const [correctCount, setCorrectCount] = useState(0);
   const [timeUsed, setTimeUsed] = useState('00:00');
   const [totalTime, setTotalTime] = useState(0);
+  const [loading, setLoading] = useState(true);
 
   // Refs
   const startTimeRef = useRef<number | null>(null);
@@ -87,7 +89,7 @@ const SimilarPracticePage: React.FC = () => {
     }
   ];
 
-  const [similarQuestions, setSimilarQuestions] = useState<SimilarQuestion[]>(fallbackSimilarQuestions);
+  const [similarQuestions, setSimilarQuestions] = useState<SimilarQuestion[]>([]);
 
   // 设置页面标题
   useEffect(() => {
@@ -105,16 +107,19 @@ const SimilarPracticePage: React.FC = () => {
     setIsAnswered(false);
     setAnswerInput('');
     setShowResultFeedback(false);
+    setLoading(false);
   };
 
   // 加载后端相似题，失败或无数据时兜底本地模拟
   useEffect(() => {
-    const mistakeId = sourceErrorId ? parseInt(sourceErrorId, 10) : NaN;
+    const targetId = sourceErrorId || fallbackMistakeId;
+    const mistakeId = targetId ? parseInt(targetId, 10) : NaN;
     if (Number.isNaN(mistakeId)) {
       resetPracticeState(fallbackSimilarQuestions);
       return;
     }
 
+    setLoading(true);
     getSimilarPractices(mistakeId, 10)
       .then((res) => {
         const mapped: SimilarQuestion[] = (res.similar || []).map((item: SimilarMistake, idx: number) => ({
@@ -130,7 +135,7 @@ const SimilarPracticePage: React.FC = () => {
         console.error('获取相似题失败:', err);
         resetPracticeState(fallbackSimilarQuestions);
       });
-  }, [sourceErrorId, originalQuestionId]);
+  }, [sourceErrorId, fallbackMistakeId, originalQuestionId]);
 
   // 初始化练习
   useEffect(() => {
@@ -266,7 +271,40 @@ const SimilarPracticePage: React.FC = () => {
 
   // 当前题目
   const currentQuestion = similarQuestions[currentQuestionIndex];
-  if (!currentQuestion) return null;
+
+  if (loading) {
+    return (
+      <div className={styles.pageWrapper}>
+        <main className="flex items-center justify-center min-h-screen">
+          <div className="text-center">
+            <div className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+            <p className="text-text-secondary">正在加载相似题...</p>
+          </div>
+        </main>
+      </div>
+    );
+  }
+
+  if (!currentQuestion) {
+    return (
+      <div className={styles.pageWrapper}>
+        <main className="flex items-center justify-center min-h-screen">
+          <div className="text-center">
+            <div className="w-16 h-16 bg-bg-light rounded-full flex items-center justify-center mx-auto mb-4">
+              <i className="fas fa-book text-text-secondary text-xl"></i>
+            </div>
+            <p className="text-text-secondary mb-4">暂无相似题练习</p>
+            <button
+              onClick={() => navigate(-1)}
+              className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90"
+            >
+              返回
+            </button>
+          </div>
+        </main>
+      </div>
+    );
+  }
 
   // 计算进度和正确率
   const progress = ((currentQuestionIndex + 1) / similarQuestions.length) * 100;
