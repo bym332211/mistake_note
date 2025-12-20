@@ -20,7 +20,7 @@ from sqlalchemy import func, case
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 try:
-    from db.database_config import get_db, save_mistake_record, MistakeRecord, MistakeAnalysis, MistakePractice
+    from db.database_config import get_db, save_mistake_record, MistakeRecord, MistakeAnalysis, MistakePractice, get_similar_mistakes
     DATABASE_AVAILABLE = True
 except ImportError as e:
     logger = logging.getLogger('coze_api')
@@ -930,6 +930,50 @@ async def get_weak_points(top_n: int = 5, subject: str = ''):
 
 
 
+
+
+@app.get("/mistake/{mistake_id}/similar")
+async def get_similar_practices(mistake_id: int, top_n: int = 10):
+    """??????/????????????????"""
+    if not DATABASE_AVAILABLE:
+        raise HTTPException(status_code=503, detail="??????????????")
+
+    with db_session() as db:
+        analyses = db.query(MistakeAnalysis).filter(MistakeAnalysis.mistake_record_id == mistake_id).all()
+        if not analyses:
+            return {"similar": []}
+
+        primary = None
+        for a in analyses:
+            if a.error_type or a.knowledge_point:
+                primary = a
+                break
+        if primary is None:
+            primary = analyses[0]
+
+        candidates = []
+        if primary.error_type:
+            candidates = get_similar_mistakes(db, error_type=primary.error_type)
+        if not candidates and primary.knowledge_point:
+            candidates = get_similar_mistakes(db, knowledge_point=primary.knowledge_point)
+
+        filtered = [c for c in candidates if c.mistake_record_id != mistake_id]
+        filtered = sorted(filtered, key=lambda x: x.created_at or datetime.min, reverse=True)[:top_n]
+
+        result = []
+        for item in filtered:
+            result.append({
+                "id": item.id,
+                "mistake_record_id": item.mistake_record_id,
+                "question": item.question or "",
+                "correct_answer": item.correct_answer or "",
+                "comment": item.comment or "",
+                "subject": item.subject or "",
+                "knowledge_point": item.knowledge_point or "",
+                "error_type": item.error_type or "",
+            })
+
+        return {"similar": result}
 @app.get("/mistakes")
 async def get_mistakes_list(
     subject: str = '',

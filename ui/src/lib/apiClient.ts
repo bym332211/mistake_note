@@ -40,6 +40,17 @@ export interface ApiError {
   detail: string;
 }
 
+export interface SimilarMistake {
+  id: number;
+  mistake_record_id: number;
+  question: string;
+  correct_answer: string;
+  comment: string;
+  subject: string;
+  knowledge_point: string;
+  error_type: string;
+}
+
 export interface WeakPointStat {
   knowledge_point: string;
   subject: string;
@@ -146,4 +157,16 @@ export const updateMistakeErrorType = async (payload: {
   }
 
   return response.json();
+};
+
+// 获取相似题（基于错题记录）
+export const getSimilarPractices = async (mistakeId: number, top_n: number = 10) => {
+  const params = new URLSearchParams();
+  params.append('top_n', top_n.toString());
+  const response = await fetch(`${API_BASE_URL}/mistake/${mistakeId}/similar?${params.toString()}`);
+  if (!response.ok) {
+    const error: ApiError = await response.json();
+    throw new Error(error.detail || '获取相似题失败');
+  }
+  return response.json() as Promise<{ similar: SimilarMistake[] }>;
 };

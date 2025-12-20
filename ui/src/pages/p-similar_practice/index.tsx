@@ -5,6 +5,7 @@ import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import styles from './styles.module.css';
 import { SimilarQuestion } from './types';
 import { MobileNav } from '../../components/MobileNav';
+import { getSimilarPractices, SimilarMistake } from '../../lib/apiClient';
 
 const SimilarPracticePage: React.FC = () => {
   const navigate = useNavigate();
@@ -28,8 +29,8 @@ const SimilarPracticePage: React.FC = () => {
   const startTimeRef = useRef<number | null>(null);
   const timerRef = useRef<number | null>(null);
 
-  // 模拟相似题目数据
-  const similarQuestions: SimilarQuestion[] = [
+  // 模拟相似题目数据（后端无数据时兜底）
+  const fallbackSimilarQuestions: SimilarQuestion[] = [
     {
       id: 1,
       type: 'multiple-choice',
@@ -85,6 +86,9 @@ const SimilarPracticePage: React.FC = () => {
     }
   ];
 
+  const [similarQuestions, setSimilarQuestions] = useState<SimilarQuestion[]>(fallbackSimilarQuestions);
+  const sourceErrorId = searchParams.get('sourceErrorId');
+
   // 设置页面标题
   useEffect(() => {
     const originalTitle = document.title;
@@ -93,6 +97,30 @@ const SimilarPracticePage: React.FC = () => {
       document.title = originalTitle;
     };
   }, []);
+
+  // 加载后端相似题
+  useEffect(() => {
+    const mistakeId = sourceErrorId ? parseInt(sourceErrorId, 10) : NaN;
+    if (!Number.isNaN(mistakeId)) {
+      getSimilarPractices(mistakeId, 10)
+        .then((res) => {
+          const mapped: SimilarQuestion[] = (res.similar || []).map((item: SimilarMistake, idx: number) => ({
+            id: item.id || idx + 1,
+            type: 'fill-blank',
+            question: item.question || '暂无题干',
+            correctAnswer: item.correct_answer || '',
+            explanation: item.comment || '',
+          }));
+          if (mapped.length > 0) {
+            setSimilarQuestions(mapped);
+            setCurrentQuestionIndex(0);
+          }
+        })
+        .catch((err) => {
+          console.error('获取相似题失败:', err);
+        });
+    }
+  }, [sourceErrorId]);
 
   // 初始化练习
   useEffect(() => {
