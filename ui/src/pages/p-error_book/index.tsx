@@ -104,7 +104,7 @@ const ErrorBookPage: React.FC = () => {
     return selectedCount > 0 && selectedCount < mistakes.length;
   };
 
-  const getReasonColor = (reason: string): string => {
+  const getReasonColor = (reason: string | null): string => {
     const colors: { [key: string]: string } = {
       '概念不清': 'bg-warning/10 text-warning',
       '计算错误': 'bg-danger/10 text-danger',

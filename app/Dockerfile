@@ -14,7 +14,7 @@ RUN apt-get update \
     && rm -rf /var/lib/apt/lists/*
 
 COPY requirements.txt /workspace/requirements.txt
-RUN pip install -r /workspace/requirements.txt
+RUN pip install -r /workspace/requirements.txt -i https://mirrors.aliyun.com/pypi/simple/
 
 COPY . /workspace
 

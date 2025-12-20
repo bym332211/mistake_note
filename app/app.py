@@ -2,9 +2,11 @@
 import uuid
 import io
 import logging
+from contextlib import contextmanager
 from typing import Optional
 from datetime import datetime
 from fastapi import FastAPI, UploadFile, File, HTTPException
+from pydantic import BaseModel
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
@@ -51,6 +53,22 @@ load_dotenv()
 
 app = FastAPI()
 
+class ErrorTypeUpdateRequest(BaseModel):
+    """请求体：更新错题的错误原因"""
+    mistake_record_id: int
+    error_type: str
+    analysis_id: Optional[int] = None
+
+
+@contextmanager
+def db_session():
+    """Provide a one-off SQLAlchemy session that always closes."""
+    db_gen = get_db()
+    db = next(db_gen)
+    try:
+        yield db
+    finally:
+        db_gen.close()
 
 
 # 添加 CORS 中间件
@@ -539,9 +557,8 @@ async def upload_image(image: UploadFile = File(...)):
 
             
 
-            db = next(get_db())
-
-            record_id = save_mistake_record(db, result, coze_analysis, practices)
+            with db_session() as db:
+                record_id = save_mistake_record(db, result, coze_analysis, practices)
 
             logger.info(f"数据保存成功！错题记录ID: {record_id}, 文件ID: {file_id}")
 
@@ -643,6 +660,7 @@ async def analyze_image(image: UploadFile = File(...)):
     }
 
     # 保存数据到数据库
+    record_id = None
     if DATABASE_AVAILABLE and (coze_analysis or practices):
 
         try:
@@ -655,9 +673,8 @@ async def analyze_image(image: UploadFile = File(...)):
 
             
 
-            db = next(get_db())
-
-            record_id = save_mistake_record(db, file_data, coze_analysis, practices)
+            with db_session() as db:
+                record_id = save_mistake_record(db, file_data, coze_analysis, practices)
 
             logger.info(f"[analyze/image] 数据保存成功！错题记录ID: {record_id}, 文件ID: {file_id}")
 
@@ -691,7 +708,7 @@ async def analyze_image(image: UploadFile = File(...)):
     }
     
     # 若已保存到数据库，附加错题记录ID
-    if DATABASE_AVAILABLE and coze_analysis:
+    if DATABASE_AVAILABLE and coze_analysis and record_id is not None:
         response_data["mistake_record_id"] = record_id
     
     # 组装类练习到返回结果（analyze 接口）
@@ -710,6 +727,46 @@ async def analyze_image(image: UploadFile = File(...)):
     return response_data
 
 
+@app.post("/mistake/error_type")
+async def update_error_type(payload: ErrorTypeUpdateRequest):
+    """更新错题的错误原因，可按错题记录或具体分析项更新"""
+    if not DATABASE_AVAILABLE:
+        raise HTTPException(status_code=503, detail="数据库不可用，无法保存错误原因")
+
+    with db_session() as db:
+        error_value = (payload.error_type or "").strip()
+        if not error_value:
+            raise HTTPException(status_code=400, detail="错误原因不能为空")
+        if len(error_value) > 100:
+            error_value = error_value[:100]
+
+        record = db.query(MistakeRecord).filter(MistakeRecord.id == payload.mistake_record_id).first()
+        if not record:
+            raise HTTPException(status_code=404, detail=f"未找到ID为 {payload.mistake_record_id} 的错题记录")
+
+        query = db.query(MistakeAnalysis).filter(MistakeAnalysis.mistake_record_id == payload.mistake_record_id)
+        if payload.analysis_id:
+            query = query.filter(MistakeAnalysis.id == payload.analysis_id)
+
+        analyses = query.all()
+        if not analyses:
+            raise HTTPException(status_code=404, detail="未找到对应的错题分析记录，无法更新错误原因")
+
+        for analysis in analyses:
+            analysis.error_type = error_value
+
+        record.updated_at = datetime.now()
+        db.commit()
+
+        return {
+            "status": "success",
+            "mistake_record_id": payload.mistake_record_id,
+            "analysis_ids": [a.id for a in analyses],
+            "error_type": error_value,
+            "updated_count": len(analyses),
+        }
+
+
 @app.get("/mistake/{mistake_id}")
 async def get_mistake_detail(mistake_id: int):
     """查询错题详情
@@ -722,8 +779,10 @@ async def get_mistake_detail(mistake_id: int):
             detail="数据库不可用，无法查询错题详情"
         )
     
+    db_gen = None
     try:
-        db = next(get_db())
+        db_gen = get_db()
+        db = next(db_gen)
         
         # 根据主键ID查询错题记录
         mistake_record = db.query(MistakeRecord).filter(MistakeRecord.id == mistake_id).first()
@@ -822,6 +881,10 @@ async def get_mistake_detail(mistake_id: int):
             status_code=500,
             detail=f"查询错题详情时发生错误: {str(e)}"
         )
+    finally:
+        if db_gen:
+            db_gen.close()
+
 
 
 @app.get("/mistakes")
@@ -850,8 +913,10 @@ async def get_mistakes_list(
             detail="数据库不可用，无法查询错题列表"
         )
     
+    db_gen = None
     try:
-        db = next(get_db())
+        db_gen = get_db()
+        db = next(db_gen)
         
         # 构建查询
         query = db.query(MistakeAnalysis).join(MistakeRecord)
@@ -929,6 +994,10 @@ async def get_mistakes_list(
             status_code=500,
             detail=f"查询错题列表时发生错误: {str(e)}"
         )
+    finally:
+        if db_gen:
+            db_gen.close()
+
 
 
 

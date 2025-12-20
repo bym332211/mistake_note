@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
-import { API_BASE_URL, getMistakeDetail } from '../../lib/apiClient';
+import { API_BASE_URL, getMistakeDetail, updateMistakeErrorType } from '../../lib/apiClient';
 import styles from './styles.module.css';
 import { MobileNav } from '../../components/MobileNav';
 
@@ -88,13 +88,44 @@ const ErrorDetailPage: React.FC = () => {
   };
 
   // 编辑模式切换
-  const handleEditToggle = () => {
-    if (isEditMode) {
-      // 保存编辑内容
-      console.log('保存编辑内容');
-      // 这里可以发送API请求保存修改
+  const handleEditToggle = async () => {
+    // 进入编辑模式
+    if (!isEditMode) {
+      setIsEditMode(true);
+      return;
     }
-    setIsEditMode(!isEditMode);
+
+    // 保存编辑内容
+    const recordId = mistakeData?.file_info?.id;
+    if (!recordId) {
+      alert('无法保存：缺少错题ID');
+      setIsEditMode(false);
+      return;
+    }
+
+    const analysisId = mainAnalysis?.id ? Number(mainAnalysis.id) : undefined;
+    const errorTypeToSave = selectedErrorType || mainAnalysis?.error_type || '未分类';
+
+    try {
+      await updateMistakeErrorType({
+        mistake_record_id: recordId,
+        analysis_id: analysisId,
+        error_type: errorTypeToSave,
+      });
+
+      // 同步更新本地展示
+      setMistakeData(prev => {
+        if (!prev) return prev;
+        const updatedAnalysis = prev.analysis.map((item, index) =>
+          index === 0 ? { ...item, error_type: errorTypeToSave } : item
+        );
+        return { ...prev, analysis: updatedAnalysis };
+      });
+      setIsEditMode(false);
+    } catch (error) {
+      console.error('保存错误原因失败:', error);
+      alert(error instanceof Error ? error.message : '保存错误原因失败，请稍后重试');
+    }
   };
 
   // 删除错题

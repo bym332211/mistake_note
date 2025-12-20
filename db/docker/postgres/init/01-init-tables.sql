@@ -73,17 +73,6 @@ BEGIN
 END;
 $$ language 'plpgsql';
 
-CREATE TRIGGER update_mistake_records_updated_at 
-    BEFORE UPDATE ON mistake_records 
+CREATE TRIGGER update_mistake_records_updated_at
+    BEFORE UPDATE ON mistake_records
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
-
--- 示例数据
-INSERT INTO mistake_records (file_id, filename, file_url, file_size, file_type) VALUES
-('example-1', 'math_problem_1.png', '/media/uploads/example-1.png', 102400, 'image/png'),
-('example-2', 'math_problem_2.jpg', '/media/uploads/example-2.jpg', 204800, 'image/jpeg')
-ON CONFLICT (file_id) DO NOTHING;
-
-INSERT INTO mistake_analysis (mistake_record_id, section, question, answer, is_question, is_correct, correct_answer, comment, error_type, knowledge_point) VALUES
-(1, '分数加法', '计算 1/2 + 1/3 = ?', '', TRUE, FALSE, '5/6', '先通分：1/2=3/6，1/3=2/6，相加为5/6。', '计算错误', '分数加法'),
-(2, '几何', '一个长方形长6cm，宽4cm，求面积', '10平方厘米', TRUE, FALSE, '24平方厘米', '面积=长×宽=6×4=24。', '概念不清', '平面几何')
-ON CONFLICT DO NOTHING;

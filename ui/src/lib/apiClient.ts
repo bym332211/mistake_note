@@ -23,8 +23,8 @@ export interface MistakeRecord {
     is_correct: boolean;
     correct_answer: string;
     comment: string;
-    error_type: string;
-    knowledge_point: string;
+    error_type: string | null;
+    knowledge_point: string | null;
     created_at: string;
   };
 }
@@ -98,4 +98,30 @@ export const exportMistakes = async (mistakeIds: number[]): Promise<void> => {
   // 注意：后端目前没有导出API，这里只是占位符
   console.log('导出错题:', mistakeIds);
   throw new Error('导出功能暂未实现');
+};
+
+// 更新错题的错误原因
+export const updateMistakeErrorType = async (payload: {
+  mistake_record_id: number;
+  error_type: string;
+  analysis_id?: number;
+}) => {
+  const response = await fetch(`${API_BASE_URL}/mistake/error_type`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(payload),
+  });
+
+  if (!response.ok) {
+    try {
+      const error: ApiError = await response.json();
+      throw new Error(error.detail || '保存错误原因失败');
+    } catch (err) {
+      throw new Error(err instanceof Error ? err.message : '保存错误原因失败');
+    }
+  }
+
+  return response.json();
 };

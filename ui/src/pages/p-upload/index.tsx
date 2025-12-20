@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import styles from './styles.module.css';
-import { API_BASE_URL } from '../../lib/apiClient';
+import { API_BASE_URL, updateMistakeErrorType } from '../../lib/apiClient';
 import { MobileNav } from '../../components/MobileNav';
 
 interface UploadedFile {
@@ -305,7 +305,7 @@ const PUpload: React.FC = () => {
   };
 
   // 保存错题
-  const handleSaveError = () => {
+  const handleSaveError = async () => {
     if (!questionContent.trim() || !correctAnswer.trim() || !knowledgePoint) {
       alert('请填写完整的题目信息');
       return;
@@ -315,15 +315,31 @@ const PUpload: React.FC = () => {
       alert('请至少选择一个错误原因或填写自定义原因');
       return;
     }
-    
-    // 模拟保存过程
+
+    const reasonTexts = selectedReasons
+      .map(id => errorReasons.find(r => r.id === id)?.text)
+      .filter((text): text is string => Boolean(text));
+    const reasonToSave = [...reasonTexts, customReason.trim()].filter(Boolean).join(' / ');
+
+    const mistakeId = apiResponse?.mistake_record_id;
+    if (!mistakeId) {
+      alert('后端未返回错题ID，无法保存错误原因');
+      return;
+    }
+
     setIsSaving(true);
-    
-    setTimeout(() => {
-      // 使用错题记录ID进行导航，如果没有则使用模拟ID
-      const mistakeId = apiResponse?.mistake_record_id || 'error_' + Date.now();
+    try {
+      await updateMistakeErrorType({
+        mistake_record_id: mistakeId,
+        error_type: reasonToSave,
+      });
       navigate(`/error-detail?errorId=${mistakeId}`);
-    }, 1500);
+    } catch (error) {
+      console.error('保存错误原因失败:', error);
+      alert(error instanceof Error ? error.message : '保存错误原因失败，请稍后重试');
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   return (
