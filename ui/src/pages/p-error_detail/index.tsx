@@ -177,8 +177,13 @@ const ErrorDetailPage: React.FC = () => {
   // 获取主要分析数据（第一条分析记录）
   const mainAnalysis = mistakeData?.analysis?.[0];
   useEffect(() => {
-    setSelectedErrorType(mainAnalysis?.error_type || '');
-  }, [mistakeData]);
+    if (!mistakeData?.analysis) {
+      setSelectedErrorType('');
+      return;
+    }
+    const firstWithErrorType = mistakeData.analysis.find((a) => a.error_type);
+    setSelectedErrorType(firstWithErrorType?.error_type || mainAnalysis?.error_type || '');
+  }, [mistakeData, mainAnalysis?.error_type]);
 
   // 渲染加载状态
   if (loading) {
