@@ -13,6 +13,7 @@ const SimilarPracticePage: React.FC = () => {
   
   // URL参数
   const originalQuestionId = searchParams.get('questionId') || 'default';
+  const sourceErrorId = searchParams.get('sourceErrorId');
 
   // 状态管理
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
@@ -87,7 +88,6 @@ const SimilarPracticePage: React.FC = () => {
   ];
 
   const [similarQuestions, setSimilarQuestions] = useState<SimilarQuestion[]>(fallbackSimilarQuestions);
-  const sourceErrorId = searchParams.get('sourceErrorId');
 
   // 设置页面标题
   useEffect(() => {
@@ -98,29 +98,39 @@ const SimilarPracticePage: React.FC = () => {
     };
   }, []);
 
-  // 加载后端相似题
+  const resetPracticeState = (questions: SimilarQuestion[]) => {
+    setSimilarQuestions(questions);
+    setCurrentQuestionIndex(0);
+    setSelectedAnswer(null);
+    setIsAnswered(false);
+    setAnswerInput('');
+    setShowResultFeedback(false);
+  };
+
+  // 加载后端相似题，失败或无数据时兜底本地模拟
   useEffect(() => {
     const mistakeId = sourceErrorId ? parseInt(sourceErrorId, 10) : NaN;
-    if (!Number.isNaN(mistakeId)) {
-      getSimilarPractices(mistakeId, 10)
-        .then((res) => {
-          const mapped: SimilarQuestion[] = (res.similar || []).map((item: SimilarMistake, idx: number) => ({
-            id: item.id || idx + 1,
-            type: 'fill-blank',
-            question: item.question || '暂无题干',
-            correctAnswer: item.correct_answer || '',
-            explanation: item.comment || '',
-          }));
-          if (mapped.length > 0) {
-            setSimilarQuestions(mapped);
-            setCurrentQuestionIndex(0);
-          }
-        })
-        .catch((err) => {
-          console.error('获取相似题失败:', err);
-        });
+    if (Number.isNaN(mistakeId)) {
+      resetPracticeState(fallbackSimilarQuestions);
+      return;
     }
-  }, [sourceErrorId]);
+
+    getSimilarPractices(mistakeId, 10)
+      .then((res) => {
+        const mapped: SimilarQuestion[] = (res.similar || []).map((item: SimilarMistake, idx: number) => ({
+          id: item.id || idx + 1,
+          type: 'fill-blank',
+          question: item.question || '暂无题干',
+          correctAnswer: item.correct_answer || '',
+          explanation: item.comment || '',
+        }));
+        resetPracticeState(mapped.length > 0 ? mapped : fallbackSimilarQuestions);
+      })
+      .catch((err) => {
+        console.error('获取相似题失败:', err);
+        resetPracticeState(fallbackSimilarQuestions);
+      });
+  }, [sourceErrorId, originalQuestionId]);
 
   // 初始化练习
   useEffect(() => {
