@@ -934,43 +934,32 @@ async def get_weak_points(top_n: int = 5, subject: str = ''):
 
 @app.get("/mistake/{mistake_id}/similar")
 async def get_similar_practices(mistake_id: int, top_n: int = 10):
-    """??????/????????????????"""
+    """获取同一错题的“相似练习”列表，仅按 mistake_record_id 查询。"""
     if not DATABASE_AVAILABLE:
         raise HTTPException(status_code=503, detail="??????????????")
 
     with db_session() as db:
-        analyses = db.query(MistakeAnalysis).filter(MistakeAnalysis.mistake_record_id == mistake_id).all()
-        if not analyses:
+        practices = (
+            db.query(MistakePractice)
+            .filter(MistakePractice.mistake_record_id == mistake_id)
+            .order_by(MistakePractice.created_at.desc())
+            .limit(top_n)
+            .all()
+        )
+        if not practices:
             return {"similar": []}
 
-        primary = None
-        for a in analyses:
-            if a.error_type or a.knowledge_point:
-                primary = a
-                break
-        if primary is None:
-            primary = analyses[0]
-
-        candidates = []
-        if primary.error_type:
-            candidates = get_similar_mistakes(db, error_type=primary.error_type)
-        if not candidates and primary.knowledge_point:
-            candidates = get_similar_mistakes(db, knowledge_point=primary.knowledge_point)
-
-        filtered = [c for c in candidates if c.mistake_record_id != mistake_id]
-        filtered = sorted(filtered, key=lambda x: x.created_at or datetime.min, reverse=True)[:top_n]
-
         result = []
-        for item in filtered:
+        for item in practices:
             result.append({
                 "id": item.id,
-                "mistake_record_id": item.mistake_record_id,
+                "mistake_record_id": mistake_id,
                 "question": item.question or "",
                 "correct_answer": item.correct_answer or "",
                 "comment": item.comment or "",
-                "subject": item.subject or "",
-                "knowledge_point": item.knowledge_point or "",
-                "error_type": item.error_type or "",
+                "subject": "",
+                "knowledge_point": "",
+                "error_type": "",
             })
 
         return {"similar": result}

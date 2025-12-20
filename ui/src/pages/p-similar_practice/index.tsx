@@ -32,63 +32,7 @@ const SimilarPracticePage: React.FC = () => {
   const startTimeRef = useRef<number | null>(null);
   const timerRef = useRef<number | null>(null);
 
-  // 模拟相似题目数据（后端无数据时兜底）
-  const fallbackSimilarQuestions: SimilarQuestion[] = [
-    {
-      id: 1,
-      type: 'multiple-choice',
-      question: '计算：3/4 + 1/6 = ?',
-      options: [
-        { label: 'A', value: '11/12', correct: true },
-        { label: 'B', value: '5/6', correct: false },
-        { label: 'C', value: '7/12', correct: false },
-        { label: 'D', value: '2/3', correct: false }
-      ],
-      correctAnswer: '11/12',
-      explanation: '解题步骤：\n1. 找到两个分数的最小公分母：4和6的最小公倍数是12\n2. 将分数转换为同分母：3/4 = 9/12，1/6 = 2/12\n3. 相加：9/12 + 2/12 = 11/12\n\n知识点：分数加减法、最小公倍数'
-    },
-    {
-      id: 2,
-      type: 'fill-blank',
-      question: '计算：2/3 - 1/4 = ?',
-      correctAnswer: '5/12',
-      explanation: '解题步骤：\n1. 找到两个分数的最小公分母：3和4的最小公倍数是12\n2. 将分数转换为同分母：2/3 = 8/12，1/4 = 3/12\n3. 相减：8/12 - 3/12 = 5/12\n\n知识点：分数减法、最小公倍数'
-    },
-    {
-      id: 3,
-      type: 'multiple-choice',
-      question: '计算：1/2 + 2/5 = ?',
-      options: [
-        { label: 'A', value: '9/10', correct: true },
-        { label: 'B', value: '3/7', correct: false },
-        { label: 'C', value: '1/5', correct: false },
-        { label: 'D', value: '3/10', correct: false }
-      ],
-      correctAnswer: '9/10',
-      explanation: '解题步骤：\n1. 找到两个分数的最小公分母：2和5的最小公倍数是10\n2. 将分数转换为同分母：1/2 = 5/10，2/5 = 4/10\n3. 相加：5/10 + 4/10 = 9/10\n\n知识点：分数加法、最小公倍数'
-    },
-    {
-      id: 4,
-      type: 'fill-blank',
-      question: '计算：5/6 - 1/3 = ?',
-      correctAnswer: '1/2',
-      explanation: '解题步骤：\n1. 找到两个分数的最小公分母：6和3的最小公倍数是6\n2. 将分数转换为同分母：5/6 = 5/6，1/3 = 2/6\n3. 相减：5/6 - 2/6 = 3/6 = 1/2\n\n知识点：分数减法、约分'
-    },
-    {
-      id: 5,
-      type: 'multiple-choice',
-      question: '计算：3/8 + 1/4 = ?',
-      options: [
-        { label: 'A', value: '5/8', correct: true },
-        { label: 'B', value: '1/2', correct: false },
-        { label: 'C', value: '7/8', correct: false },
-        { label: 'D', value: '1/8', correct: false }
-      ],
-      correctAnswer: '5/8',
-      explanation: '解题步骤：\n1. 找到两个分数的最小公分母：8和4的最小公倍数是8\n2. 将分数转换为同分母：3/8 = 3/8，1/4 = 2/8\n3. 相加：3/8 + 2/8 = 5/8\n\n知识点：分数加法、最小公倍数'
-    }
-  ];
-
+  // 相似题目数据（完全来自后端）
   const [similarQuestions, setSimilarQuestions] = useState<SimilarQuestion[]>([]);
 
   // 设置页面标题
@@ -110,12 +54,12 @@ const SimilarPracticePage: React.FC = () => {
     setLoading(false);
   };
 
-  // 加载后端相似题，失败或无数据时兜底本地模拟
+  // 加载后端相似题，失败或无数据时显示空态
   useEffect(() => {
     const targetId = sourceErrorId || fallbackMistakeId;
     const mistakeId = targetId ? parseInt(targetId, 10) : NaN;
     if (Number.isNaN(mistakeId)) {
-      resetPracticeState(fallbackSimilarQuestions);
+      resetPracticeState([]);
       return;
     }
 
@@ -129,11 +73,11 @@ const SimilarPracticePage: React.FC = () => {
           correctAnswer: item.correct_answer || '',
           explanation: item.comment || '',
         }));
-        resetPracticeState(mapped.length > 0 ? mapped : fallbackSimilarQuestions);
+        resetPracticeState(mapped);
       })
       .catch((err) => {
         console.error('获取相似题失败:', err);
-        resetPracticeState(fallbackSimilarQuestions);
+        resetPracticeState([]);
       });
   }, [sourceErrorId, fallbackMistakeId, originalQuestionId]);
 
