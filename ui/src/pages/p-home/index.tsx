@@ -168,20 +168,6 @@ const HomePage: React.FC = () => {
                 <span className="font-medium">错题本</span>
               </Link>
             </li>
-            {/* <li>
-              <Link 
-                to="/review-plan" 
-                onClick={() => handleMenuItemClick('review')}
-                className={`flex items-center space-x-3 px-4 py-3 rounded-lg ${
-                  activeMenuItem === 'review' 
-                    ? `${styles.menuItem} ${styles.menuItemActive}` 
-                    : `${styles.menuItem} text-text-secondary`
-                }`}
-              >
-                <i className="fas fa-redo text-lg"></i>
-                <span className="font-medium">错题复习</span>
-              </Link>
-            </li>
             <li>
               <Link 
                 to="/report" 
@@ -195,7 +181,7 @@ const HomePage: React.FC = () => {
                 <i className="fas fa-chart-line text-lg"></i>
                 <span className="font-medium">学习报告</span>
               </Link>
-            </li> */}
+            </li>
           </ul>
         </nav>
       </aside>

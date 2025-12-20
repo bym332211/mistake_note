@@ -7,6 +7,7 @@ import P_upload from '../pages/p-upload';
 import P_error_book from '../pages/p-error_book';
 import P_error_detail from '../pages/p-error_detail';
 import P_similar_practice from '../pages/p-similar_practice';
+import P_report from '../pages/p-report';
 import NotFoundPage from './NotFoundPage';
 import ErrorPage from './ErrorPage';
 
@@ -79,6 +80,15 @@ const router = createBrowserRouter([
     element: (
       <ErrorBoundary>
         <P_similar_practice />
+      </ErrorBoundary>
+    ),
+    errorElement: <ErrorPage />,
+  },
+      {
+    path: '/report',
+    element: (
+      <ErrorBoundary>
+        <P_report />
       </ErrorBoundary>
     ),
     errorElement: <ErrorPage />,

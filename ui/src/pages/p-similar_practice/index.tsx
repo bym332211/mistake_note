@@ -373,12 +373,6 @@ const SimilarPracticePage: React.FC = () => {
               </Link>
             </li>
             <li>
-              <Link to="/review-plan" className={`${styles.menuItem} flex items-center space-x-3 px-4 py-3 rounded-lg text-text-secondary`}>
-                <i className="fas fa-redo text-lg"></i>
-                <span className="font-medium">错题复习</span>
-              </Link>
-            </li>
-            <li>
               <Link to="/report" className={`${styles.menuItem} flex items-center space-x-3 px-4 py-3 rounded-lg text-text-secondary`}>
                 <i className="fas fa-chart-line text-lg"></i>
                 <span className="font-medium">学习报告</span>

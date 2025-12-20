@@ -1,0 +1,53 @@
+.pageWrapper {
+  background-color: #F9FAFB;
+  min-height: 100vh;
+}
+
+.sidebarTransition {
+  transition: width 0.3s ease-in-out;
+}
+
+.menuItemActive {
+  background-color: #EEF2FF;
+  color: #4F46E5;
+  border-right: 3px solid #4F46E5;
+}
+
+.menuItem:hover {
+  background-color: #F3F4F6;
+  color: #4F46E5;
+}
+
+.statCard {
+  background: linear-gradient(135deg, #6366F1 0%, #8B5CF6 100%);
+  box-shadow: 0 10px 30px rgba(99, 102, 241, 0.3);
+}
+
+.trendBar {
+  background: linear-gradient(90deg, #6366F1 0%, #22D3EE 100%);
+}
+
+.masteryBar {
+  background: linear-gradient(90deg, #34D399 0%, #10B981 100%);
+}
+
+.errorBar {
+  background: linear-gradient(90deg, #F59E0B 0%, #F43F5E 100%);
+}
+
+.levelPill {
+  padding: 2px 8px;
+  border-radius: 9999px;
+  font-size: 12px;
+  background-color: #EEF2FF;
+  color: #4F46E5;
+}
+
+.timeSlot {
+  background-color: #F8FAFC;
+  border: 1px solid #E5E7EB;
+}
+
+.stepBadge {
+  background: linear-gradient(135deg, #6366F1 0%, #8B5CF6 100%);
+}

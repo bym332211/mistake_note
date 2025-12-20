@@ -162,12 +162,6 @@ const ErrorDetailPage: React.FC = () => {
     navigate('/error-book?knowledgePoint=分数加减法');
   };
 
-  // 相似题点击
-  const handleSimilarQuestionClick = (questionId: string) => {
-    const errorId = searchParams.get('errorId') || 'error-1';
-    navigate(`/similar-practice?questionId=${questionId}&sourceErrorId=${errorId}`);
-  };
-
   // 开始练习所有相似题
   const handlePracticeAll = () => {
     const errorId = searchParams.get('errorId') || 'error-1';
@@ -282,15 +276,6 @@ const ErrorDetailPage: React.FC = () => {
               >
                 <i className="fas fa-book text-lg"></i>
                 <span className="font-medium">错题本</span>
-              </Link>
-            </li>
-            <li>
-              <Link 
-                to="/review-plan" 
-                className={`${styles.menuItem} flex items-center space-x-3 px-4 py-3 rounded-lg text-text-secondary`}
-              >
-                <i className="fas fa-redo text-lg"></i>
-                <span className="font-medium">错题复习</span>
               </Link>
             </li>
             <li>
@@ -522,8 +507,7 @@ const ErrorDetailPage: React.FC = () => {
                 mistakeData.practices.map((practice, index) => (
                   <div 
                     key={practice.id || index}
-                    className={`${styles.similarQuestion} p-4 border border-border-light rounded-lg cursor-pointer transition-all duration-200`}
-                    onClick={() => handleSimilarQuestionClick(`practice-${practice.id || index}`)}
+                    className="p-4 border border-border-light rounded-lg transition-all duration-200"
                   >
                     <div className="flex items-start space-x-4">
                       <div className="w-8 h-8 bg-primary/10 rounded-lg flex items-center justify-center">
@@ -537,7 +521,6 @@ const ErrorDetailPage: React.FC = () => {
                           <span className="text-text-secondary text-xs">预计用时：3分钟</span>
                         </div>
                       </div>
-                      <i className="fas fa-chevron-right text-text-secondary"></i>
                     </div>
                   </div>
                 ))
