@@ -323,21 +323,21 @@ const HomePage: React.FC = () => {
           </div>
         </section>
 
-                        {/* ?????? */}
+                        {/* 最近错题列表 */}
         <section className="mb-8">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold text-text-primary">????</h3>
+            <h3 className="text-lg font-semibold text-text-primary">最近错题</h3>
             <Link 
               to="/error-book" 
               className="text-primary hover:text-primary/80 text-sm font-medium"
             >
-              ????
+              查看全部
             </Link>
           </div>
           <div className="bg-card-bg rounded-2xl border border-border-light overflow-hidden">
             <div className="divide-y divide-border-light">
               {recentMistakes.length === 0 ? (
-                <div className="p-4 text-center text-text-secondary">??????</div>
+                <div className="p-4 text-center text-text-secondary">暂无错题记录</div>
               ) : (
                 recentMistakes.map((item) => (
                   <div 
@@ -349,25 +349,25 @@ const HomePage: React.FC = () => {
                       {item.file_info?.file_url ? (
                         <img 
                           src={`${item.file_info.file_url.startsWith('http') ? '' : API_BASE_URL}${item.file_info.file_url}`} 
-                          alt="????" 
+                          alt="题目图片" 
                           className="w-14 h-14 rounded-lg object-cover"
                         />
                       ) : (
                         <div className="w-14 h-14 rounded-lg bg-bg-light border border-border-light flex items-center justify-center text-text-secondary text-xs">
-                          ??
+                          无图
                         </div>
                       )}
                       <div className="flex-1">
                         <h4 className="font-medium text-text-primary">
-                          {item.analysis.subject || '????'}{item.analysis.section ? ` ? ${item.analysis.section}` : ''}
+                          {item.analysis.subject || '未分学科'}{item.analysis.section ? ` · ${item.analysis.section}` : ''}
                         </h4>
-                        <p className="text-text-secondary text-sm line-clamp-1">{item.analysis.question || '?????'}</p>
+                        <p className="text-text-secondary text-sm line-clamp-1">{item.analysis.question || '无题目内容'}</p>
                         <div className="flex items-center space-x-4 mt-2">
                           <span className="px-2 py-1 bg-primary/10 text-primary text-xs rounded-full">
-                            {item.analysis.error_type || '???'}
+                            {item.analysis.error_type || '未分类'}
                           </span>
                           <span className="text-text-secondary text-xs">
-                            {item.file_info.upload_time ? new Date(item.file_info.upload_time).toLocaleDateString('zh-CN') : '????'}
+                            {item.file_info.upload_time ? new Date(item.file_info.upload_time).toLocaleDateString('zh-CN') : '未知时间'}
                           </span>
                         </div>
                       </div>
@@ -379,21 +379,21 @@ const HomePage: React.FC = () => {
             </div>
           </div>
         </section>
-        {/* ??????? */}
+        {/* 薄弱知识点推荐 */}
         <section className="mb-8">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold text-text-primary">?????</h3>
+            <h3 className="text-lg font-semibold text-text-primary">薄弱知识点</h3>
             <Link 
               to="/report" 
               className="text-primary hover:text-primary/80 text-sm font-medium"
             >
-              ????
+              查看详情
             </Link>
           </div>
           <div className="bg-card-bg rounded-2xl border border-border-light p-6">
             <div className="space-y-4">
               {weakPoints.length === 0 ? (
-                <div className="text-center text-text-secondary">????</div>
+                <div className="text-center text-text-secondary">暂无数据</div>
               ) : (
                 weakPoints.map((kp) => (
                   <div 
@@ -408,7 +408,7 @@ const HomePage: React.FC = () => {
                       <div>
                         <h4 className="font-medium text-text-primary">{kp.knowledge_point}</h4>
                         <p className="text-text-secondary text-sm">
-                          {kp.subject || '????'} ? ??? {kp.error_rate}%
+                          {kp.subject || '未分学科'} · 错误率 {kp.error_rate}%
                         </p>
                       </div>
                     </div>
@@ -416,7 +416,7 @@ const HomePage: React.FC = () => {
                       onClick={(e) => handlePracticeWeakClick(e, kp.knowledge_point)}
                       className="px-4 py-2 bg-primary text-white rounded-lg text-sm hover:bg-primary/90"
                     >
-                      ????
+                      专项练习
                     </button>
                   </div>
                 ))
