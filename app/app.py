@@ -14,6 +14,7 @@ import json
 import sys
 # -*- coding: utf-8 -*-
 import os
+from sqlalchemy import func, case
 
 # 将项目根目录加入 Python 路径，便于导入数据库配置
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -886,6 +887,48 @@ async def get_mistake_detail(mistake_id: int):
             db_gen.close()
 
 
+@app.get("/stats/weak_points")
+async def get_weak_points(top_n: int = 5, subject: str = ''):
+    """统计薄弱知识点，按错误数倒序返回"""
+    if not DATABASE_AVAILABLE:
+        raise HTTPException(status_code=503, detail="数据库不可用，无法统计薄弱知识点")
+
+    with db_session() as db:
+        query = db.query(
+            MistakeAnalysis.knowledge_point.label("knowledge_point"),
+            MistakeAnalysis.subject.label("subject"),
+            func.count(MistakeAnalysis.id).label("total_count"),
+            func.sum(case((MistakeAnalysis.is_correct == False, 1), else_=0)).label("incorrect_count"),  # noqa: E712
+        ).filter(MistakeAnalysis.knowledge_point.isnot(None))
+
+        if subject:
+            query = query.filter(MistakeAnalysis.subject == subject)
+
+        stats = (
+            query.group_by(MistakeAnalysis.knowledge_point, MistakeAnalysis.subject)
+            .order_by(func.sum(case((MistakeAnalysis.is_correct == False, 1), else_=0)).desc())  # noqa: E712
+            .limit(top_n)
+            .all()
+        )
+
+        result = []
+        for row in stats:
+            incorrect = row.incorrect_count or 0
+            total = row.total_count or 1
+            error_rate = round(incorrect / total * 100, 2) if total else 0
+            result.append(
+                {
+                    "knowledge_point": row.knowledge_point,
+                    "subject": row.subject or "",
+                    "total_count": total,
+                    "incorrect_count": incorrect,
+                    "error_rate": error_rate,
+                }
+            )
+
+        return {"weak_points": result}
+
+
 
 @app.get("/mistakes")
 async def get_mistakes_list(
@@ -935,9 +978,14 @@ async def get_mistakes_list(
         if knowledge_point:
             query = query.filter(MistakeAnalysis.knowledge_point.ilike(f"%{knowledge_point}%"))
         
-        # 应用分页
+        # 应用排序 + 分页（按创建时间倒序）
         total_count = query.count()
-        analysis_data = query.offset(skip).limit(limit).all()
+        analysis_data = (
+            query.order_by(MistakeRecord.created_at.desc(), MistakeAnalysis.created_at.desc())
+            .offset(skip)
+            .limit(limit)
+            .all()
+        )
         
         # 构建响应数据
         response_data = {

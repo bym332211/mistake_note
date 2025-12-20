@@ -40,6 +40,14 @@ export interface ApiError {
   detail: string;
 }
 
+export interface WeakPointStat {
+  knowledge_point: string;
+  subject: string;
+  total_count: number;
+  incorrect_count: number;
+  error_rate: number;
+}
+
 // 获取错题列表
 export const getMistakesList = async (
   subject?: string,
@@ -64,6 +72,20 @@ export const getMistakesList = async (
   }
 
   return response.json();
+};
+
+// 获取薄弱知识点统计
+export const getWeakPoints = async (top_n: number = 5, subject?: string) => {
+  const params = new URLSearchParams();
+  params.append('top_n', top_n.toString());
+  if (subject) params.append('subject', subject);
+
+  const response = await fetch(`${API_BASE_URL}/stats/weak_points?${params}`);
+  if (!response.ok) {
+    const error: ApiError = await response.json();
+    throw new Error(error.detail || '获取薄弱知识点失败');
+  }
+  return response.json() as Promise<{ weak_points: WeakPointStat[] }>;
 };
 
 // 获取错题详情

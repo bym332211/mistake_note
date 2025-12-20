@@ -4,11 +4,14 @@ import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import styles from './styles.module.css';
 import { MobileNav } from '../../components/MobileNav';
+import { API_BASE_URL, getMistakesList, getWeakPoints, MistakeRecord, WeakPointStat } from '../../lib/apiClient';
 
 const HomePage: React.FC = () => {
   const navigate = useNavigate();
   const [currentDate, setCurrentDate] = useState<string>('');
   const [activeMenuItem, setActiveMenuItem] = useState<string>('home');
+  const [recentMistakes, setRecentMistakes] = useState<MistakeRecord[]>([]);
+  const [weakPoints, setWeakPoints] = useState<WeakPointStat[]>([]);
 
   useEffect(() => {
     const originalTitle = document.title;
@@ -24,6 +27,25 @@ const HomePage: React.FC = () => {
       weekday: 'long'
     });
     setCurrentDate(date);
+  }, []);
+
+  useEffect(() => {
+    const loadHomeData = async () => {
+      try {
+        const mistakesRes = await getMistakesList(undefined, undefined, undefined, 0, 5);
+        setRecentMistakes(mistakesRes.mistakes || []);
+      } catch (err) {
+        console.error('加载最近错题失败:', err);
+      }
+
+      try {
+        const weakRes = await getWeakPoints(5);
+        setWeakPoints(weakRes.weak_points || []);
+      } catch (err) {
+        console.error('加载薄弱知识点失败:', err);
+      }
+    };
+    void loadHomeData();
   }, []);
 
   const handleUserProfileClick = () => {
@@ -50,17 +72,17 @@ const HomePage: React.FC = () => {
     navigate('/report');
   };
 
-  const handleRecentErrorClick = (errorId: string) => {
+  const handleRecentErrorClick = (errorId: number) => {
     navigate(`/error-detail?errorId=${errorId}`);
   };
 
   const handleWeakPointClick = (knowledgeId: string) => {
-    navigate(`/error-book?knowledgeId=${knowledgeId}`);
+    navigate(`/error-book?knowledgePoint=${knowledgeId}`);
   };
 
   const handlePracticeWeakClick = (e: React.MouseEvent, knowledgeId: string) => {
     e.stopPropagation();
-    navigate(`/similar-practice?knowledgeId=${knowledgeId}`);
+    navigate(`/similar-practice?knowledgePoint=${knowledgeId}`);
   };
 
   return (
@@ -301,163 +323,104 @@ const HomePage: React.FC = () => {
           </div>
         </section>
 
-        {/* 最近错题列表 */}
+                        {/* ?????? */}
         <section className="mb-8">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold text-text-primary">最近错题</h3>
+            <h3 className="text-lg font-semibold text-text-primary">????</h3>
             <Link 
               to="/error-book" 
               className="text-primary hover:text-primary/80 text-sm font-medium"
             >
-              查看全部
+              ????
             </Link>
           </div>
           <div className="bg-card-bg rounded-2xl border border-border-light overflow-hidden">
             <div className="divide-y divide-border-light">
-              <div 
-                onClick={() => handleRecentErrorClick('error-001')}
-                className="p-4 hover:bg-bg-light cursor-pointer"
-              >
-                <div className="flex items-center space-x-4">
-                  <img 
-                    src="https://s.coze.cn/image/Qq-uCmSQlAU/" 
-                    alt="数学题目图片" 
-                    className="w-14 h-14 rounded-lg object-cover"
-                  />
-                  <div className="flex-1">
-                    <h4 className="font-medium text-text-primary">数学 - 分数加减法</h4>
-                    <p className="text-text-secondary text-sm">{'计算：1/2 + 1/3 = ?'}</p>
-                    <div className="flex items-center space-x-4 mt-2">
-                      <span className="px-2 py-1 bg-danger/10 text-danger text-xs rounded-full">计算错误</span>
-                      <span className="text-text-secondary text-xs">2024-01-15</span>
+              {recentMistakes.length === 0 ? (
+                <div className="p-4 text-center text-text-secondary">??????</div>
+              ) : (
+                recentMistakes.map((item) => (
+                  <div 
+                    key={item.mistake_record_id}
+                    onClick={() => handleRecentErrorClick(item.mistake_record_id)}
+                    className="p-4 hover:bg-bg-light cursor-pointer"
+                  >
+                    <div className="flex items-center space-x-4">
+                      {item.file_info?.file_url ? (
+                        <img 
+                          src={`${item.file_info.file_url.startsWith('http') ? '' : API_BASE_URL}${item.file_info.file_url}`} 
+                          alt="????" 
+                          className="w-14 h-14 rounded-lg object-cover"
+                        />
+                      ) : (
+                        <div className="w-14 h-14 rounded-lg bg-bg-light border border-border-light flex items-center justify-center text-text-secondary text-xs">
+                          ??
+                        </div>
+                      )}
+                      <div className="flex-1">
+                        <h4 className="font-medium text-text-primary">
+                          {item.analysis.subject || '????'}{item.analysis.section ? ` ? ${item.analysis.section}` : ''}
+                        </h4>
+                        <p className="text-text-secondary text-sm line-clamp-1">{item.analysis.question || '?????'}</p>
+                        <div className="flex items-center space-x-4 mt-2">
+                          <span className="px-2 py-1 bg-primary/10 text-primary text-xs rounded-full">
+                            {item.analysis.error_type || '???'}
+                          </span>
+                          <span className="text-text-secondary text-xs">
+                            {item.file_info.upload_time ? new Date(item.file_info.upload_time).toLocaleDateString('zh-CN') : '????'}
+                          </span>
+                        </div>
+                      </div>
+                      <i className="fas fa-chevron-right text-text-secondary"></i>
                     </div>
                   </div>
-                  <i className="fas fa-chevron-right text-text-secondary"></i>
-                </div>
-              </div>
-              
-              <div 
-                onClick={() => handleRecentErrorClick('error-002')}
-                className="p-4 hover:bg-bg-light cursor-pointer"
-              >
-                <div className="flex items-center space-x-4">
-                  <img 
-                    src="https://s.coze.cn/image/cCrVCIZvb2U/" 
-                    alt="语文题目图片" 
-                    className="w-14 h-14 rounded-lg object-cover"
-                  />
-                  <div className="flex-1">
-                    <h4 className="font-medium text-text-primary">语文 - 阅读理解</h4>
-                    <p className="text-text-secondary text-sm">《春天来了》段落分析</p>
-                    <div className="flex items-center space-x-4 mt-2">
-                      <span className="px-2 py-1 bg-warning/10 text-warning text-xs rounded-full">概念不清</span>
-                      <span className="text-text-secondary text-xs">2024-01-14</span>
-                    </div>
-                  </div>
-                  <i className="fas fa-chevron-right text-text-secondary"></i>
-                </div>
-              </div>
-              
-              <div 
-                onClick={() => handleRecentErrorClick('error-003')}
-                className="p-4 hover:bg-bg-light cursor-pointer"
-              >
-                <div className="flex items-center space-x-4">
-                  <img 
-                    src="https://s.coze.cn/image/QlFuuB9-vUU/" 
-                    alt="英语题目图片" 
-                    className="w-14 h-14 rounded-lg object-cover"
-                  />
-                  <div className="flex-1">
-                    <h4 className="font-medium text-text-primary">英语 - 时态填空</h4>
-                    <p className="text-text-secondary text-sm">选择正确的动词时态</p>
-                    <div className="flex items-center space-x-4 mt-2">
-                      <span className="px-2 py-1 bg-info/10 text-info text-xs rounded-full">知识点遗忘</span>
-                      <span className="text-text-secondary text-xs">2024-01-13</span>
-                    </div>
-                  </div>
-                  <i className="fas fa-chevron-right text-text-secondary"></i>
-                </div>
-              </div>
+                ))
+              )}
             </div>
           </div>
         </section>
-
-        {/* 薄弱知识点推荐 */}
+        {/* ??????? */}
         <section className="mb-8">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold text-text-primary">薄弱知识点</h3>
+            <h3 className="text-lg font-semibold text-text-primary">?????</h3>
             <Link 
               to="/report" 
               className="text-primary hover:text-primary/80 text-sm font-medium"
             >
-              查看详情
+              ????
             </Link>
           </div>
           <div className="bg-card-bg rounded-2xl border border-border-light p-6">
             <div className="space-y-4">
-              <div 
-                onClick={() => handleWeakPointClick('kp-fraction')}
-                className="flex items-center justify-between p-4 bg-danger/5 rounded-xl border border-danger/20 cursor-pointer"
-              >
-                <div className="flex items-center space-x-4">
-                  <div className="w-10 h-10 bg-danger/10 rounded-lg flex items-center justify-center">
-                    <i className="fas fa-exclamation text-danger"></i>
+              {weakPoints.length === 0 ? (
+                <div className="text-center text-text-secondary">????</div>
+              ) : (
+                weakPoints.map((kp) => (
+                  <div 
+                    key={kp.knowledge_point}
+                    onClick={() => handleWeakPointClick(kp.knowledge_point)}
+                    className="flex items-center justify-between p-4 bg-bg-light/80 rounded-xl border border-border-light cursor-pointer"
+                  >
+                    <div className="flex items-center space-x-4">
+                      <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center">
+                        <i className="fas fa-lightbulb text-primary"></i>
+                      </div>
+                      <div>
+                        <h4 className="font-medium text-text-primary">{kp.knowledge_point}</h4>
+                        <p className="text-text-secondary text-sm">
+                          {kp.subject || '????'} ? ??? {kp.error_rate}%
+                        </p>
+                      </div>
+                    </div>
+                    <button 
+                      onClick={(e) => handlePracticeWeakClick(e, kp.knowledge_point)}
+                      className="px-4 py-2 bg-primary text-white rounded-lg text-sm hover:bg-primary/90"
+                    >
+                      ????
+                    </button>
                   </div>
-                  <div>
-                    <h4 className="font-medium text-text-primary">分数加减法</h4>
-                    <p className="text-text-secondary text-sm">数学 · 错误率 45%</p>
-                  </div>
-                </div>
-                <button 
-                  onClick={(e) => handlePracticeWeakClick(e, 'kp-fraction')}
-                  className="px-4 py-2 bg-danger text-white rounded-lg text-sm hover:bg-danger/90"
-                >
-                  专项练习
-                </button>
-              </div>
-              
-              <div 
-                onClick={() => handleWeakPointClick('kp-tense')}
-                className="flex items-center justify-between p-4 bg-warning/5 rounded-xl border border-warning/20 cursor-pointer"
-              >
-                <div className="flex items-center space-x-4">
-                  <div className="w-10 h-10 bg-warning/10 rounded-lg flex items-center justify-center">
-                    <i className="fas fa-clock text-warning"></i>
-                  </div>
-                  <div>
-                    <h4 className="font-medium text-text-primary">英语时态</h4>
-                    <p className="text-text-secondary text-sm">英语 · 错误率 38%</p>
-                  </div>
-                </div>
-                <button 
-                  onClick={(e) => handlePracticeWeakClick(e, 'kp-tense')}
-                  className="px-4 py-2 bg-warning text-white rounded-lg text-sm hover:bg-warning/90"
-                >
-                  专项练习
-                </button>
-              </div>
-              
-              <div 
-                onClick={() => handleWeakPointClick('kp-reading')}
-                className="flex items-center justify-between p-4 bg-info/5 rounded-xl border border-info/20 cursor-pointer"
-              >
-                <div className="flex items-center space-x-4">
-                  <div className="w-10 h-10 bg-info/10 rounded-lg flex items-center justify-center">
-                    <i className="fas fa-lightbulb text-info"></i>
-                  </div>
-                  <div>
-                    <h4 className="font-medium text-text-primary">阅读理解</h4>
-                    <p className="text-text-secondary text-sm">语文 · 错误率 32%</p>
-                  </div>
-                </div>
-                <button 
-                  onClick={(e) => handlePracticeWeakClick(e, 'kp-reading')}
-                  className="px-4 py-2 bg-info text-white rounded-lg text-sm hover:bg-info/90"
-                >
-                  专项练习
-                </button>
-              </div>
+                ))
+              )}
             </div>
           </div>
         </section>
