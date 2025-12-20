@@ -267,7 +267,7 @@ const SimilarPracticePage: React.FC = () => {
                 alt="用户头像" 
                 className="w-8 h-8 rounded-full" 
               />
-              <span className="hidden sm:inline text-text-primary font-medium">小明同学</span>
+              <span className="hidden sm:inline text-text-primary font-medium">鲍俊安同学</span>
               <i className="hidden sm:inline fas fa-chevron-down text-text-secondary text-sm"></i>
             </div>
           </div>

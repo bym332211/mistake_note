@@ -93,7 +93,7 @@ const HomePage: React.FC = () => {
                 alt="用户头像" 
                 className="w-8 h-8 rounded-full" 
               />
-              <span className="hidden sm:inline text-text-primary font-medium">小明同学</span>
+              <span className="hidden sm:inline text-text-primary font-medium">鲍俊安同学</span>
               <i className="hidden sm:inline fas fa-chevron-down text-text-secondary text-sm"></i>
             </div>
           </div>
@@ -184,7 +184,7 @@ const HomePage: React.FC = () => {
         <div className="mb-8">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div>
-              <h2 className="text-2xl font-bold text-text-primary mb-2">欢迎回来，小明同学！</h2>
+              <h2 className="text-2xl font-bold text-text-primary mb-2">欢迎回来，鲍俊安同学！</h2>
               <nav className="text-sm text-text-secondary">
                 <span>首页</span>
               </nav>
