@@ -15,7 +15,7 @@ const HomePage: React.FC = () => {
 
   useEffect(() => {
     const originalTitle = document.title;
-    document.title = '错题智析 - 首页';
+    document.title = 'AI错题本 - 首页';
     return () => { document.title = originalTitle; };
   }, []);
 
@@ -65,7 +65,7 @@ const HomePage: React.FC = () => {
   };
 
   const handleQuickReviewClick = () => {
-    navigate('/review-plan');
+    console.log('复习计划功能待实现');
   };
 
   const handleQuickReportClick = () => {
@@ -95,7 +95,7 @@ const HomePage: React.FC = () => {
             <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center">
               <i className="fas fa-brain text-white text-lg"></i>
             </div>
-            <h1 className="text-lg md:text-xl font-bold text-text-primary">错题智析</h1>
+            <h1 className="text-lg md:text-xl font-bold text-text-primary">AI错题本</h1>
           </div>
           
           {/* 用户操作区 */}
@@ -168,7 +168,7 @@ const HomePage: React.FC = () => {
                 <span className="font-medium">错题本</span>
               </Link>
             </li>
-            <li>
+            {/* <li>
               <Link 
                 to="/review-plan" 
                 onClick={() => handleMenuItemClick('review')}
@@ -195,7 +195,7 @@ const HomePage: React.FC = () => {
                 <i className="fas fa-chart-line text-lg"></i>
                 <span className="font-medium">学习报告</span>
               </Link>
-            </li>
+            </li> */}
           </ul>
         </nav>
       </aside>

@@ -24,7 +24,7 @@ const ErrorBookPage: React.FC = () => {
   // 设置页面标题
   useEffect(() => {
     const originalTitle = document.title;
-    document.title = '错题智析 - 错题本';
+    document.title = 'AI错题本 - 错题本';
     return () => { document.title = originalTitle; };
   }, []);
 
@@ -132,7 +132,7 @@ const ErrorBookPage: React.FC = () => {
             <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center">
               <i className="fas fa-brain text-white text-lg"></i>
             </div>
-            <h1 className="text-lg md:text-xl font-bold text-text-primary">错题智析</h1>
+            <h1 className="text-lg md:text-xl font-bold text-text-primary">AI错题本</h1>
           </div>
           
           <div className="flex items-center space-x-4">
